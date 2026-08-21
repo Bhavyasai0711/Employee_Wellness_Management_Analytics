@@ -1,0 +1,766 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Wellness Recommendations | AI Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+<style>
+/* Module 4 Premium Styling */
+.rec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+@media (max-width: 768px) {
+    .rec-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.rec-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    transition: all 0.25s ease;
+    position: relative;
+}
+.rec-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+.rec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.rec-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.rec-icon {
+    font-size: 1.15rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+.rec-icon.fitness { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.rec-icon.diet { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.rec-icon.mental { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.rec-icon.yoga { background: rgba(79, 70, 229, 0.12); color: #4f46e5; }
+
+.rec-title {
+    font-size: 1.1rem;
+    font-weight: 750;
+    color: #0f172a;
+    margin: 0;
+}
+.rec-badge {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background-color: #f1f5f9;
+    color: #475569;
+    margin-bottom: 10px;
+}
+.rec-desc {
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.peer-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+}
+.peer-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.peer-list-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.peer-list-item i {
+    color: #10b981;
+    margin-top: 3px;
+}
+
+.ai-coach-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.ai-coach-header {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    padding: 24px;
+}
+.ai-coach-header h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+}
+.ai-coach-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.ai-output-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    font-size: 0.92rem;
+    color: #334155;
+    line-height: 1.7;
+    max-height: 480px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.btn-regenerate {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff !important;
+    border: none;
+    font-weight: 700;
+    padding: 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+.btn-regenerate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.35);
+}
+
+.voice-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.voice-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+}
+.card-voice-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #4f46e5;
+    font-size: 0.95rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.card-voice-btn:hover {
+    background: #4f46e5;
+    color: #ffffff;
+    border-color: #4f46e5;
+    transform: scale(1.1);
+}
+</style>
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-amber-subtle text-amber border border-amber-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-lightbulb me-1"></i> Module 4
+        </span>
+        {% if selected_employee %}
+            <h2 class="fw-bold text-dark mb-0">Recommendations: {{ selected_employee.full_name }}</h2>
+        {% else %}
+            <h2 class="fw-bold text-dark mb-0">Personalized Wellness Recommendation System</h2>
+        {% endif %}
+    </div>
+    
+    <!-- Voice Assistant Command Bar -->
+    <div class="glass-card px-3 py-2 d-flex align-items-center gap-2 rounded-pill border shadow-sm" style="background: #ffffff;">
+        <button id="voiceCommandBtn" class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" onclick="startVoiceCommand()" title="Speak Voice Command (e.g., 'Read AI Plan', 'Read Fitness', 'Read Diet')">
+            <i class="fa-solid fa-microphone"></i>
+        </button>
+        <div>
+            <div id="voiceCommandStatus" class="fw-bold text-dark extra-small">Voice Assistant</div>
+            <div class="text-muted extra-small">Click mic to speak commands</div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Selection Toolbar (Admin only) -->
+{% if current_user.role == 'admin' %}
+<div class="glass-card p-3 mb-4 rounded-4 shadow-sm border d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-users-viewfinder me-2 text-indigo"></i>Inspect Employee Recommendations
+        </h5>
+    </div>
+    <form method="get" class="d-flex gap-2 mb-0">
+        <select class="form-select form-select-sm rounded-pill px-3" name="employee_id" style="width: 250px;" required>
+            <option value="">-- Select Employee --</option>
+            {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if selected_employee and selected_employee.id == emp.id %}selected{% endif %}>{{ emp.full_name }} ({{ emp.department }})</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" type="submit">Inspect Profile</button>
+    </form>
+</div>
+{% endif %}
+
+{% if record %}
+<div class="row g-4">
+    <!-- Left Column: Recommendations -->
+    <div class="col-xl-8">
+        <!-- Content-Based Section -->
+        <div class="glass-card p-4 rounded-4 shadow-sm border mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h4 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-notes-medical me-2 text-indigo"></i>Profile-Matched Action Plans
+                </h4>
+                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" onclick="readAllActionPlans(this)">
+                    <i class="fa-solid fa-volume-high me-1"></i> Read All Recommendations
+                </button>
+            </div>
+            
+            <div class="rec-grid">
+                <!-- Fitness Block -->
+                <div class="rec-card border-top-danger" id="card-fitness">
+                    <div class="rec-header">
+                        <div class="rec-header-left">
+                            <div class="rec-icon fitness"><i class="fa-solid fa-dumbbell"></i></div>
+                            <h3 class="rec-title">Fitness &amp; Exercise</h3>
+                        </div>
+                        <button class="card-voice-btn" onclick="readCardText('card-fitness', this)" title="Listen to Fitness Plan">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+                    {% for item in fitness_recs %}
+                        <div class="mb-3">
+                            <span class="rec-badge">{{ item.duration }} | {{ item.frequency }}</span>
+                            <h5 class="fw-bold mb-1 text-dark">{{ item.title }}</h5>
+                            <p class="rec-desc">{{ item.details }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Diet Block -->
+                <div class="rec-card border-top-warning" id="card-diet">
+                    <div class="rec-header">
+                        <div class="rec-header-left">
+                            <div class="rec-icon diet"><i class="fa-solid fa-plate-wheat"></i></div>
+                            <h3 class="rec-title">Diet &amp; Nutrition</h3>
+                        </div>
+                        <button class="card-voice-btn" onclick="readCardText('card-diet', this)" title="Listen to Diet Plan">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+                    {% for item in diet_recs %}
+                        <div class="mb-3">
+                            <span class="rec-badge">{{ item.calories }}</span>
+                            <h5 class="fw-bold mb-1 text-dark">{{ item.title }}</h5>
+                            <p class="rec-desc">{{ item.details }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Mindfulness Block -->
+                <div class="rec-card border-top-success" id="card-mental">
+                    <div class="rec-header">
+                        <div class="rec-header-left">
+                            <div class="rec-icon mental"><i class="fa-solid fa-spa"></i></div>
+                            <h3 class="rec-title">Mindfulness &amp; Meditation</h3>
+                        </div>
+                        <button class="card-voice-btn" onclick="readCardText('card-mental', this)" title="Listen to Mindfulness Plan">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+                    {% for item in mental_recs %}
+                        <div class="mb-3">
+                            <span class="rec-badge">{{ item.schedule }}</span>
+                            <h5 class="fw-bold mb-1 text-dark">{{ item.title }}</h5>
+                            <p class="rec-desc">{{ item.details }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Yoga Block -->
+                <div class="rec-card border-top-primary" id="card-yoga">
+                    <div class="rec-header">
+                        <div class="rec-header-left">
+                            <div class="rec-icon yoga"><i class="fa-solid fa-child-yoga"></i></div>
+                            <h3 class="rec-title">Yoga Routines</h3>
+                        </div>
+                        <button class="card-voice-btn" onclick="readCardText('card-yoga', this)" title="Listen to Yoga Plan">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+                    {% for item in yoga_recs %}
+                        <div class="mb-3">
+                            <span class="rec-badge">{{ item.duration }}</span>
+                            <h5 class="fw-bold mb-1 text-dark">{{ item.title }}</h5>
+                            <p class="rec-desc">{{ item.details }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- YouTube Video Recommendations Section -->
+        {% if youtube_recs %}
+        <div class="glass-card p-4 rounded-4 shadow-sm border mb-4" id="section-youtube-recs">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h4 class="fw-bold text-dark mb-0">
+                    <i class="fa-brands fa-youtube me-2 text-danger fs-4"></i>YouTube Video Recommendations
+                </h4>
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">
+                    <i class="fa-solid fa-play me-1"></i> Interactive Video Lessons
+                </span>
+            </div>
+            <p class="text-muted small mb-4">Curated workplace health, yoga, and posture videos for daily employee wellness.</p>
+
+            <div class="row g-4">
+                {% for video in youtube_recs %}
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" style="background: #ffffff;">
+                        <div class="ratio ratio-16x9">
+                            <iframe src="{{ video.embed_url }}" title="{{ video.title }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-primary-subtle text-primary border rounded-pill px-2 py-1 extra-small fw-bold">{{ video.badge }}</span>
+                                    <span class="text-muted extra-small"><i class="fa-solid fa-tag me-1 text-indigo"></i>{{ video.category }}</span>
+                                </div>
+                                <h5 class="fw-bold text-dark fs-6 mb-2">{{ video.title }}</h5>
+                                <p class="text-muted extra-small mb-3" style="line-height: 1.5;">{{ video.details }}</p>
+                            </div>
+                            <a class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold extra-small mt-auto" href="{{ video.watch_url }}" target="_blank">
+                                <i class="fa-brands fa-youtube me-1"></i>Watch on YouTube
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Video & Animation Interactive Guides -->
+        {% if video_recs %}
+        <div class="glass-card p-4 rounded-4 shadow-sm border mb-4" id="section-video-recs">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h4 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-circle-play me-2 text-rose"></i>Interactive Motion &amp; Video Guides
+                </h4>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                    <i class="fa-solid fa-film me-1"></i> Motion Guides
+                </span>
+            </div>
+            <p class="text-muted small mb-4">Engage in interactive visualizers and video guides tailored to your health metrics.</p>
+
+            <div class="row g-4">
+                {% for video in video_recs %}
+                <div class="col-md-6">
+                    <div class="rec-card h-100 d-flex flex-column justify-content-between p-3" id="{{ video.id }}" style="border-left: 4px solid {{ video.accent_color }}; background: #ffffff;">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge" style="background-color: {{ video.accent_color }}; color: #ffffff;">
+                                    <i class="fa-solid {{ video.thumbnail_icon }} me-1"></i>{{ video.badge }}
+                                </span>
+                                <button class="card-voice-btn" style="width: 30px; height: 30px;" onclick="speakText('{{ video.transcript|e }}', this)" title="Listen to Video Transcript">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                </button>
+                            </div>
+                            
+                            <h5 class="fw-bold text-dark mb-1">{{ video.title }}</h5>
+                            <p class="text-muted small mb-2">
+                                <i class="fa-solid fa-clock me-1 text-primary"></i>Duration: <strong>{{ video.duration }}</strong> | {{ video.category }}
+                            </p>
+                            <p class="rec-desc mb-3">{{ video.description }}</p>
+
+                            <div class="ratio ratio-16x9 mb-3 rounded-3 overflow-hidden shadow-sm">
+                                <iframe src="{{ video.video_url }}" title="{{ video.title }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-outline-danger btn-sm w-100 rounded-pill mt-2 fw-bold" onclick="openVideoModal('{{ video.title|e }}', '{{ video.video_url|e }}', '{{ video.transcript|e }}')">
+                            <i class="fa-solid fa-play me-1"></i>Full Screen Video Player
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Collaborative Filtering Section -->
+        <div class="peer-card rounded-4 shadow-sm mb-4" id="card-peer">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-users me-2 text-indigo"></i>Peer Group Insights (Collaborative Filtering)
+                </h4>
+                <button class="card-voice-btn" onclick="readCardText('card-peer', this)" title="Listen to Peer Insights">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+            <p class="text-muted small mb-3">Habits and workouts recommended based on positive health indicators from similar employee profiles.</p>
+            <div class="peer-list">
+                {% for tip in collaborative_recs %}
+                    <div class="peer-list-item">
+                        <i class="fa-solid fa-circle-check text-emerald"></i>
+                        <span>{{ tip }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Generative AI Coach (Qwen) -->
+    <div class="col-xl-4">
+        <div class="ai-coach-card shadow-sm">
+            <div class="ai-coach-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h3><i class="fa-solid fa-wand-magic-sparkles me-2 text-warning"></i>Qwen AI Wellness Coach</h3>
+                    <p class="small mb-0 mt-1 opacity-75">Tailored health strategies generated using Qwen LLM.</p>
+                </div>
+                {% if ai_plan %}
+                    <button class="voice-btn ms-2" onclick="readFullAiPlan(this)" title="Voice Assistant Read Out">
+                        <i class="fa-solid fa-volume-high"></i>
+                        <span>Listen</span>
+                    </button>
+                {% endif %}
+            </div>
+            <div class="ai-coach-body">
+                {% if ai_plan %}
+                    <div id="rawAiPlanText" style="display: none;">{{ ai_plan.plan_text }}</div>
+                    <div id="formattedAiPlan" class="ai-output-box flex-grow-1"></div>
+                    
+                    <form action="{{ url_for('module4.generate_ai', employee_id=selected_uid) }}" method="post" class="mt-auto mb-0">
+                        <button class="btn btn-regenerate" type="submit">
+                            <i class="fa-solid fa-arrows-rotate me-2"></i>Regenerate AI Plan
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="text-center py-5 my-auto text-muted d-flex flex-column align-items-center justify-content-center flex-grow-1">
+                        <i class="fa-solid fa-robot fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
+                        <p class="small mb-3">No AI Wellness plan has been generated yet for this profile.</p>
+                        <form action="{{ url_for('module4.generate_ai', employee_id=selected_uid) }}" method="post" class="mb-0">
+                            <button class="btn btn-regenerate px-4" type="submit" style="width: auto;">
+                                <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate AI Plan
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="glass-card text-center py-5 rounded-4 shadow-sm border">
+    <i class="fa-solid fa-folder-open fs-1 text-muted mb-3"></i>
+    {% if current_user.role == 'admin' %}
+        <p class="text-muted">Please select an employee with a logged health record to view recommendations.</p>
+    {% else %}
+        <p class="text-muted mb-3">Please add a health record first to generate custom recommendations.</p>
+        <a href="{{ url_for('module2.add_record') }}" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">Log Health Record</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Interactive Video Modal -->
+<div class="modal fade" id="videoGuideModal" tabindex="-1" aria-labelledby="videoGuideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header bg-dark text-white p-3">
+                <h5 class="modal-title mb-0 fw-bold text-white" id="videoGuideModalLabel">
+                    <i class="fa-solid fa-circle-play me-2 text-danger"></i><span id="modalVideoTitle">Video Guide</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopVideoModal()"></button>
+            </div>
+            <div class="modal-body p-0 bg-black">
+                <div class="ratio ratio-16x9">
+                    <iframe id="modalVideoIframe" src="" title="Video Guide Player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="modal-footer bg-light p-3 d-flex justify-content-between align-items-center">
+                <div class="text-muted small text-start me-3">
+                    <i class="fa-solid fa-circle-info me-1 text-primary"></i><span id="modalVideoTranscript"></span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm px-4 rounded-pill" data-bs-dismiss="modal" onclick="stopVideoModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentActiveVoiceBtn = null;
+
+function openVideoModal(title, videoUrl, transcript) {
+    document.getElementById("modalVideoTitle").innerText = title;
+    document.getElementById("modalVideoIframe").src = videoUrl;
+    document.getElementById("modalVideoTranscript").innerText = transcript;
+    const modal = new bootstrap.Modal(document.getElementById("videoGuideModal"));
+    modal.show();
+}
+
+function stopVideoModal() {
+    document.getElementById("modalVideoIframe").src = "";
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const rawBox = document.getElementById("rawAiPlanText");
+    const formattedBox = document.getElementById("formattedAiPlan");
+    
+    if (rawBox && formattedBox) {
+        const md = rawBox.innerHTML;
+        const html = parseMarkdown(md);
+        formattedBox.innerHTML = html;
+    }
+    
+    function parseMarkdown(md) {
+        if (!md) return "";
+        
+        let lines = md.split(/\r?\n/);
+        let html = "";
+        
+        for (let line of lines) {
+            let trimmed = line.trim();
+            if (!trimmed) {
+                continue;
+            }
+            
+            // Clean HTML Entities like &amp; to &
+            trimmed = trimmed.replace(/&amp;/g, "&");
+            
+            if (trimmed.startsWith("###")) {
+                let title = trimmed.replace(/^###\s*/, "");
+                html += `<h5 class="fw-bold mt-3 mb-2 text-indigo" style="border-left: 3px solid #7c3aed; padding-left: 8px;">${title}</h5>`;
+            } else if (trimmed.startsWith("##")) {
+                let title = trimmed.replace(/^##\s*/, "");
+                html += `<h4 class="fw-bold mt-3 mb-2 text-dark">${title}</h4>`;
+            } else if (trimmed.startsWith("#")) {
+                let title = trimmed.replace(/^#\s*/, "");
+                html += `<h3 class="fw-bold mt-3 mb-2 text-dark">${title}</h3>`;
+            }
+            else if (trimmed.startsWith("*") || trimmed.startsWith("-")) {
+                let content = trimmed.replace(/^[\*\-]\s*/, "");
+                content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                html += `<div class="d-flex align-items-start gap-2 mb-2" style="padding-left: 4px;">
+                    <i class="fa-solid fa-circle-chevron-right mt-1 text-purple" style="font-size: 0.8rem;"></i>
+                    <span style="color: #334155; font-size: 0.88rem;">${content}</span>
+                </div>`;
+            }
+            else {
+                let content = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                html += `<p class="mb-2 text-muted" style="font-size: 0.88rem; line-height: 1.6;">${content}</p>`;
+            }
+        }
+        return html;
+    }
+});
+
+// Voice Assistant Speech Synthesis Function
+function speakText(text, btnElement) {
+    if (!('speechSynthesis' in window)) {
+        alert("Voice Assistant text-to-speech is not supported in this browser. Please use Chrome, Edge, or Safari.");
+        return;
+    }
+
+    if (window.speechSynthesis.speaking && currentActiveVoiceBtn === btnElement) {
+        window.speechSynthesis.cancel();
+        resetVoiceUI();
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+    resetVoiceUI();
+
+    if (!text || !text.trim()) return;
+
+    let cleanText = text
+        .replace(/###/g, " ")
+        .replace(/\*\*/g, " ")
+        .replace(/[\*\-]/g, " ")
+        .replace(/&amp;/g, " and ")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha') || v.name.includes('David')));
+    if (preferredVoice) {
+        utterance.voice = preferredVoice;
+    }
+
+    if (btnElement) {
+        currentActiveVoiceBtn = btnElement;
+        btnElement.classList.add('is-speaking');
+        const icon = btnElement.querySelector('i');
+        const label = btnElement.querySelector('span');
+        if (icon) icon.className = 'fa-solid fa-square-stop';
+        if (label) label.textContent = 'Stop';
+    }
+
+    utterance.onend = resetVoiceUI;
+    utterance.onerror = resetVoiceUI;
+
+    window.speechSynthesis.speak(utterance);
+}
+
+function resetVoiceUI() {
+    if (currentActiveVoiceBtn) {
+        currentActiveVoiceBtn.classList.remove('is-speaking');
+        const icon = currentActiveVoiceBtn.querySelector('i');
+        const label = currentActiveVoiceBtn.querySelector('span');
+        if (icon) icon.className = 'fa-solid fa-volume-high';
+        if (label) label.textContent = 'Listen';
+        currentActiveVoiceBtn = null;
+    }
+}
+
+function readFullAiPlan(btn) {
+    const rawBox = document.getElementById("rawAiPlanText");
+    if (rawBox) {
+        speakText("Personalized AI Wellness Strategy. " + rawBox.textContent, btn);
+    }
+}
+
+function readCardText(cardId, btn) {
+    const card = document.getElementById(cardId);
+    if (card) {
+        speakText(card.innerText, btn);
+    }
+}
+
+function readAllActionPlans(btn) {
+    const cards = document.querySelectorAll('.rec-card');
+    let fullText = "Profile matched action plans. ";
+    cards.forEach(card => {
+        fullText += card.innerText + ". ";
+    });
+    speakText(fullText, btn);
+}
+
+function startVoiceCommand() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Voice command speech recognition is not supported in this browser. Please use Google Chrome, Edge, or Safari.");
+        return;
+    }
+
+    const btn = document.getElementById("voiceCommandBtn");
+    const status = document.getElementById("voiceCommandStatus");
+
+    const rec = new SpeechRecognition();
+    rec.lang = 'en-US';
+    rec.continuous = false;
+    rec.interimResults = false;
+
+    rec.onstart = function() {
+        btn.classList.add("btn-danger");
+        btn.classList.remove("btn-primary");
+        btn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+        status.textContent = "Listening...";
+        status.style.color = "#ef4444";
+    };
+
+    rec.onresult = function(event) {
+        const command = event.results[0][0].transcript.toLowerCase();
+        status.textContent = `Command: "${command}"`;
+        status.style.color = "#4f46e5";
+
+        if (command.includes("ai") || command.includes("qwen") || command.includes("strategy") || command.includes("plan")) {
+            const aiBtn = document.querySelector(".ai-coach-header .voice-btn");
+            readFullAiPlan(aiBtn);
+        } else if (command.includes("fitness") || command.includes("exercise") || command.includes("workout")) {
+            const card = document.getElementById("card-fitness");
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth' });
+                readCardText("card-fitness", card.querySelector(".card-voice-btn"));
+            }
+        } else if (command.includes("diet") || command.includes("food") || command.includes("nutrition")) {
+            const card = document.getElementById("card-diet");
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth' });
+                readCardText("card-diet", card.querySelector(".card-voice-btn"));
+            }
+        } else if (command.includes("mental") || command.includes("mindfulness") || command.includes("meditation")) {
+            const card = document.getElementById("card-mental");
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth' });
+                readCardText("card-mental", card.querySelector(".card-voice-btn"));
+            }
+        } else if (command.includes("yoga")) {
+            const card = document.getElementById("card-yoga");
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth' });
+                readCardText("card-yoga", card.querySelector(".card-voice-btn"));
+            }
+        } else if (command.includes("all") || command.includes("read all") || command.includes("everything")) {
+            const readAllBtn = document.querySelector("button[onclick='readAllActionPlans(this)']");
+            readAllActionPlans(readAllBtn);
+        } else {
+            speakText(`I heard: ${command}. Try saying: read AI plan, read fitness, or read diet.`, null);
+        }
+    };
+
+    rec.onerror = function() {
+        resetVoiceCommandUI();
+    };
+
+    rec.onend = function() {
+        resetVoiceCommandUI();
+    };
+
+    rec.start();
+}
+
+function resetVoiceCommandUI() {
+    const btn = document.getElementById("voiceCommandBtn");
+    const status = document.getElementById("voiceCommandStatus");
+    if (btn) {
+        btn.classList.add("btn-primary");
+        btn.classList.remove("btn-danger");
+        btn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+    }
+    if (status && !status.textContent.startsWith("Command:")) {
+        status.textContent = "Voice Assistant";
+        status.style.color = "#1e293b";
+    }
+}
+</script>
+{% endblock %}

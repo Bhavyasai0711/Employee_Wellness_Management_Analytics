@@ -1,0 +1,260 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Wellness Risk Prediction | AI Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-brain me-1 text-purple"></i> Module 3 ML Engine
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Wellness Risk & Burnout Prediction</h2>
+    </div>
+    <form action="{{ url_for('module3.retrain') }}" method="post" class="mb-0">
+        <button class="btn btn-gradient-action px-4 py-2 shadow-sm" type="submit">
+            <i class="fa-solid fa-arrows-rotate me-2"></i>Retrain ML Models
+        </button>
+    </form>
+</div>
+
+<!-- Model Selection & Metrics Comparison -->
+<div class="row g-4 mb-4">
+    <!-- Model Performance Matrix -->
+    <div class="col-lg-6">
+        <div class="glass-card h-100 p-4 rounded-4 shadow-sm border border-top-primary">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; border-radius: 12px;">
+                    <i class="fa-solid fa-chart-line fs-5 text-indigo"></i>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                    Active: {{ model_type }}
+                </span>
+            </div>
+            
+            <h4 class="fw-bold text-dark mb-1">Model Performance Matrix</h4>
+            <p class="text-muted small mb-3">Compare validation metrics across trained ML classifiers on employee biometrics.</p>
+            
+            <div class="table-responsive">
+                <table class="table align-middle table-hover small mb-3 border rounded-3 overflow-hidden">
+                    <thead class="table-light">
+                        <tr class="text-uppercase extra-small text-muted fw-bold">
+                            <th>Classifier</th>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, m in metrics.items() %}
+                        <tr {% if name == model_type %}style="background: linear-gradient(90deg, rgba(79, 70, 229, 0.12) 0%, rgba(124, 58, 237, 0.05) 100%); font-weight: 700;"{% endif %}>
+                            <td>
+                                {% if name == 'XGBoost' %}
+                                    <i class="fa-solid fa-bolt me-2 text-amber fs-6"></i><span class="text-dark fw-bold">{{ name }}</span> <span class="badge bg-warning text-dark extra-small ms-1">DEFAULT</span>
+                                {% elif name == 'Neural Network' %}
+                                    <i class="fa-solid fa-brain me-2 text-cyan fs-6"></i><span>{{ name }}</span>
+                                {% elif name == 'Random Forest' %}
+                                    <i class="fa-solid fa-tree me-2 text-emerald fs-6"></i><span>{{ name }}</span>
+                                {% else %}
+                                    <i class="fa-solid fa-diagram-project me-2 text-indigo fs-6"></i><span>{{ name }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-indigo">{{ m.accuracy }}%</td>
+                            <td>{{ m.precision }}%</td>
+                            <td>{{ m.recall }}%</td>
+                            <td class="fw-bold text-dark">{{ m.f1_score }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <form method="get" class="mt-3 pt-3 border-top">
+                <label class="form-label small fw-bold text-dark mb-2"><i class="fa-solid fa-sliders me-1 text-indigo"></i>Select Active Classifier</label>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm rounded-pill px-3" name="model">
+                        {% for name in metrics.keys() %}
+                            <option value="{{ name }}" {% if name == model_type %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" type="submit">Activate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Feature Importance Weights Chart -->
+    <div class="col-lg-6">
+        <div class="glass-card h-100 p-4 rounded-4 shadow-sm border border-top-success">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; border-radius: 12px;">
+                    <i class="fa-solid fa-gauge-high fs-5 text-emerald"></i>
+                </div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
+                    Feature Weights
+                </span>
+            </div>
+
+            <h4 class="fw-bold text-dark mb-1">Feature Importance Weights</h4>
+            <p class="text-muted small mb-3">Extracted feature contributions driving stress &amp; burnout risk predictions in {{ model_type }}.</p>
+            <div style="height: 200px; position: relative;">
+                <canvas id="importanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Personal Wellness Risk (Employee View) -->
+<div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning mb-4">
+    <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+        <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+            <i class="fa-solid fa-user-shield fs-5 text-amber"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-0">Personal Wellness Risk Analysis</h4>
+    </div>
+
+    {% if personal_prediction %}
+        <div class="row align-items-center g-4">
+            <div class="col-md-4 text-center">
+                <div class="p-4 rounded-4 border shadow-sm {% if personal_prediction.risk_class == 'High' %}border-danger bg-danger-subtle{% elif personal_prediction.risk_class == 'Moderate' %}border-warning bg-warning-subtle{% else %}border-success bg-success-subtle{% endif %}" style="display: inline-block; min-width: 220px;">
+                    <p class="text-uppercase extra-small mb-1 fw-bold text-muted">Burnout Risk Forecast</p>
+                    <h2 class="fw-bold mb-1 {% if personal_prediction.risk_class == 'High' %}text-danger{% elif personal_prediction.risk_class == 'Moderate' %}text-warning{% else %}text-success{% endif %}">
+                        {{ personal_prediction.risk_class }} Risk
+                    </h2>
+                    <span class="badge rounded-pill bg-white text-dark border px-3 py-1 fw-bold extra-small">
+                        Confidence: {{ personal_prediction.probability }}%
+                    </span>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <h5 class="fw-bold text-dark mb-2">Model Analysis Summary:</h5>
+                <p class="text-muted small mb-3" style="line-height: 1.6;">
+                    Based on your biometrics, daily step count, average sleep pattern (<strong>{{ personal_prediction.record.sleep_hours }} hours</strong>), 
+                    self-reported stress index (<strong>{{ personal_prediction.record.stress_level }}</strong>), and attendance (<strong>{{ personal_prediction.record.attendance_percentage }}%</strong>), 
+                    the active <strong class="text-indigo">{{ model_type }}</strong> classifier predicts a <strong>{{ personal_prediction.risk_class }} Risk</strong> wellness profile.
+                </p>
+                <div class="p-3 rounded-3 bg-light border">
+                    <strong class="text-dark"><i class="fa-solid fa-lightbulb text-amber me-2"></i>AI Actionable Guidance:</strong>
+                    <ul class="mb-0 mt-2 small text-muted">
+                        {% if personal_prediction.risk_class == 'High' %}
+                            <li class="text-danger fw-semibold">⚠️ High stress indicator: Flagged for fatigue review. We advise reducing screen time and scheduling breaks.</li>
+                            <li>📞 Consider booking a consultation with our corporate wellness counselor.</li>
+                        {% elif personal_prediction.risk_class == 'Moderate' %}
+                            <li class="text-warning fw-semibold">💪 Moderate risk: Focus on stabilizing sleep cycles to at least 7 hours and maintaining daily hydration.</li>
+                            <li>💧 Increase daily water intake to 2.5L and schedule light evening walks.</li>
+                        {% else %}
+                            <li class="text-success fw-semibold">✅ Outstanding wellness profile: Maintain physical routines, sleep schedule, and hydration.</li>
+                            <li>🌟 You are doing great! Keep up the balanced daily wellness habits.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="fa-solid fa-notes-medical fs-1 text-muted mb-3"></i>
+            <p class="mb-2">No health record logged for your account. Add your health record to generate AI risk predictions.</p>
+            <a class="btn btn-primary px-4 py-2 rounded-pill fw-bold" href="{{ url_for('module2.add_record') }}">
+                <i class="fa-solid fa-plus me-2"></i>Create Health Record
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Admin View Directory -->
+{% if current_user.role == 'admin' %}
+<div class="glass-card p-4 rounded-4 shadow-sm border border-top-accent">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <div class="icon-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; border-radius: 10px;">
+            <i class="fa-solid fa-folder-tree fs-5 text-cyan"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-0">Organization Risk Forecast Directory</h4>
+    </div>
+    <p class="text-muted small mb-3">Model-based risk predictions for all registered organization employees.</p>
+    
+    <div class="table-responsive">
+        <table class="table align-middle table-hover border rounded-3 overflow-hidden">
+            <thead class="table-light extra-small text-muted text-uppercase fw-bold">
+                <tr>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>Wellness Score</th>
+                    <th>Physiological Risk</th>
+                    <th>Active Model Forecast</th>
+                    <th>Probability</th>
+                    <th>Risk Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in all_predictions %}
+                <tr>
+                    <td><strong>{{ r.user.full_name }}</strong><br><span class="text-muted extra-small">{{ r.record.employee_code }}</span></td>
+                    <td>{{ r.user.department }}</td>
+                    <td><span class="fw-bold text-indigo">{{ r.record.wellness_score }}</span></td>
+                    <td><span class="fw-bold text-danger">{{ r.record.health_risk_score }}%</span></td>
+                    <td><strong class="text-dark">{{ r.risk_class }} Risk</strong></td>
+                    <td>{{ r.probability }}%</td>
+                    <td>
+                        {% if r.risk_class == 'High' %}
+                            <span class="badge bg-danger rounded-pill px-3 py-1">High Risk Flag</span>
+                        {% elif r.risk_class == 'Moderate' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1">Moderate Risk</span>
+                        {% else %}
+                            <span class="badge bg-success rounded-pill px-3 py-1">Normal Profile</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted py-3">No employee records in database to forecast.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('importanceChart').getContext('2d');
+    const chartLabels = {{ chart_labels|tojson }};
+    const chartValues = {{ chart_values|tojson }};
+    
+    // Sort descending
+    const items = chartLabels.map((l, i) => ({ label: l, val: chartValues[i] }));
+    items.sort((a, b) => b.val - a.val);
+    
+    const sortedLabels = items.map(x => x.label);
+    const sortedValues = items.map(x => x.val);
+    
+    const barColors = [
+        '#4f46e5', '#7c3aed', '#06b6d4', '#10b981', 
+        '#f59e0b', '#ec4899', '#8b5cf6', '#3b82f6'
+    ];
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sortedLabels,
+            datasets: [{
+                label: 'Relative Weight',
+                data: sortedValues,
+                backgroundColor: barColors.slice(0, sortedLabels.length),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

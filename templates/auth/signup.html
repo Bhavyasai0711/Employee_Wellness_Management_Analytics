@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Create Account | AI Employee Wellness Analytics{% endblock %}
+{% block content %}
+<section class="auth-section wide position-relative overflow-hidden py-2">
+    <!-- Ambient Animated Color Orbs -->
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <div class="auth-card glass-card signup-card shadow-lg position-relative z-1 animate-fade-in-up my-auto">
+        <!-- Top Gradient Accent Line -->
+        <div class="auth-card-top-accent"></div>
+
+        <div class="text-center mb-2">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 mb-1 fw-bold extra-small">
+                <i class="fa-solid fa-sparkles me-1 text-purple"></i> FAST ENROLLMENT
+            </span>
+            <h3 class="fw-bold text-dark mb-1">Create Your Account</h3>
+            <p class="text-muted extra-small mb-0">Register to access AI employee wellness & analytics insights.</p>
+        </div>
+
+        <form method="post" class="password-rules-form" novalidate>
+            <div class="row g-2 g-md-3">
+                <!-- Row 1: Personal Details (3 Columns) -->
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">First Name</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-user text-indigo"></i></span>
+                        <input class="form-control border-start-0" name="first_name" placeholder="First Name" value="{{ form.first_name if form else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Last Name</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-regular fa-user text-indigo"></i></span>
+                        <input class="form-control border-start-0" name="last_name" placeholder="Last Name" value="{{ form.last_name if form else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Role</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-user-gear text-violet"></i></span>
+                        <select class="form-select border-start-0" name="role" required>
+                            <option value="employee">Employee</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: ID & Contact Info (3 Columns) -->
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Employee / Admin ID</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-id-badge text-violet"></i></span>
+                        <input class="form-control border-start-0" name="employee_id" placeholder="e.g. EMP-101" value="{{ form.employee_id if form else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Work Email</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-envelope text-emerald"></i></span>
+                        <input class="form-control border-start-0" name="email" type="email" placeholder="email@company.com" value="{{ form.email if form else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Phone Number</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-phone text-amber"></i></span>
+                        <input class="form-control border-start-0" name="phone" type="tel" placeholder="+91 9876543210" value="{{ form.phone if form else '' }}" required>
+                    </div>
+                </div>
+
+                <!-- Row 3: Demographics & Department (3 Columns) -->
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Department</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-building text-cyan"></i></span>
+                        <input class="form-control border-start-0" name="department" placeholder="Engineering, HR" value="{{ form.department if form else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Gender</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-venus-mars text-cyan"></i></span>
+                        <select class="form-select border-start-0" name="gender" required>
+                            <option>Female</option>
+                            <option>Male</option>
+                            <option>Other</option>
+                            <option>Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Date of Birth</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-regular fa-calendar-days text-rose"></i></span>
+                        <input class="form-control border-start-0" name="date_of_birth" type="date" value="{{ form.date_of_birth if form else '' }}" required>
+                    </div>
+                </div>
+
+                <!-- Row 4: Password Security (2 Columns) -->
+                <div class="col-md-6">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Password</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-lock text-rose"></i></span>
+                        <input class="form-control password-input strength-password border-start-0 border-end-0" name="password" type="password" placeholder="••••••••" required autocomplete="new-password">
+                        <button class="btn btn-outline-secondary toggle-password bg-white text-muted" type="button" title="Show or hide password"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                    <div class="progress mt-1 password-progress" style="height: 3px;" role="progressbar">
+                        <div class="progress-bar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label extra-small fw-bold text-dark mb-1">Confirm Password</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-shield-halved text-rose"></i></span>
+                        <input class="form-control confirm-password border-start-0" name="confirm_password" type="password" placeholder="••••••••" required autocomplete="new-password">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Requirements checklist -->
+            <div class="password-rules password-rules-compact mt-2">
+                <span data-rule="length"><i class="fa-regular fa-circle me-1"></i>Min 8 Chars</span>
+                <span data-rule="upper"><i class="fa-regular fa-circle me-1"></i>Uppercase</span>
+                <span data-rule="lower"><i class="fa-regular fa-circle me-1"></i>Lowercase</span>
+                <span data-rule="number"><i class="fa-regular fa-circle me-1"></i>Number</span>
+                <span data-rule="special"><i class="fa-regular fa-circle me-1"></i>Special Char</span>
+                <span data-rule="match"><i class="fa-regular fa-circle me-1"></i>Password Match</span>
+            </div>
+
+            <div class="form-check mt-2 mb-2">
+                <input class="form-check-input" type="checkbox" name="terms" id="terms" required>
+                <label class="form-check-label extra-small text-muted fw-semibold" for="terms">I accept the Terms & Conditions.</label>
+            </div>
+
+            <button class="btn btn-gradient-action w-100 btn-sm py-2 shadow-sm" type="submit">
+                <i class="fa-solid fa-user-check me-2"></i>Create Account
+            </button>
+        </form>
+
+        <div class="auth-divider my-2"><span class="extra-small text-muted fw-bold">OR</span></div>
+
+        <a class="btn btn-google w-100 btn-sm py-2 shadow-sm d-flex align-items-center justify-content-center" href="{{ url_for('auth.google_login') }}">
+            <i class="fa-brands fa-google me-2 text-danger"></i>Continue with Google
+        </a>
+
+        <p class="text-center mt-2 mb-0 extra-small text-muted">Already registered? <a href="{{ url_for('auth.login') }}" class="fw-bold text-indigo">Login to Dashboard</a></p>
+    </div>
+</section>
+{% endblock %}

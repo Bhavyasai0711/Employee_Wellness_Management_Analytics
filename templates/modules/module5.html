@@ -1,0 +1,272 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Mental Health Analytics | AI Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-heart-pulse me-1 text-purple"></i> Module 5 NLP Engine
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Mental Health &amp; Sentiment Analytics</h2>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Daily Wellness Journal -->
+    <div class="col-lg-5">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 d-flex flex-column">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; border-radius: 12px;">
+                    <i class="fa-solid fa-pen-nib fs-5 text-indigo"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Daily Wellness Journal</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Share your daily workplace experience. The AI NLP sentiment engine audits stress, tone, and burnout factors in real time.</p>
+
+            <!-- Quick Emotion Selector Presets -->
+            <div class="mb-3">
+                <label class="form-label extra-small fw-bold text-muted text-uppercase mb-2">Quick Mood Presets:</label>
+                <div class="d-flex flex-wrap gap-1.5 mb-2">
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill extra-small fw-bold px-3 py-1" onclick="fillJournalPreset('😊 Feeling energized, focused, and accomplished today.')">
+                        😊 Energized
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm rounded-pill extra-small fw-bold px-3 py-1" onclick="fillJournalPreset('😐 Managing workload smoothly with steady focus.')">
+                        😐 Steady
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill extra-small fw-bold px-3 py-1" onclick="fillJournalPreset('😔 Feeling a bit exhausted from meetings and tight deadlines today.')">
+                        😔 Exhausted
+                    </button>
+                </div>
+            </div>
+            
+            <form action="{{ url_for('module5.checkin') }}" method="post" class="mt-auto">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-dark mb-2">How are you feeling today?</label>
+                    <textarea class="form-control rounded-3 p-3 text-dark" id="journalInput" name="feedback_text" rows="5" placeholder="E.g., I feel a bit exhausted from meetings today, but looking forward to the weekend..." required style="font-size: 0.9rem; border: 1px solid #cbd5e1;"></textarea>
+                </div>
+                <button class="btn btn-gradient-action w-100 rounded-pill py-2.5 fw-bold shadow-sm" type="submit">
+                    <i class="fa-solid fa-paper-plane me-2"></i>Analyze &amp; Log Entry
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Right Column: Mood & Stress Analytics -->
+    <div class="col-lg-7">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-purple h-100 d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; border-radius: 12px;">
+                        <i class="fa-solid fa-chart-line fs-5 text-purple"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-0">Mood &amp; Stress Analytics</h4>
+                </div>
+                {% if latest_log %}
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                        NLP Sentiment Verified
+                    </span>
+                {% endif %}
+            </div>
+            
+            {% if latest_log %}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label extra-small fw-bold text-muted text-uppercase mb-0">Latest Check-in Status</label>
+                        <span class="badge rounded-pill px-3 py-1 fw-bold extra-small
+                            {% if latest_log.sentiment_label == 'Positive' %}bg-success text-white
+                            {% elif latest_log.sentiment_label == 'Negative' %}bg-danger text-white
+                            {% else %}bg-secondary text-white{% endif %}">
+                            Sentiment: {{ latest_log.sentiment_label }}
+                        </span>
+                    </div>
+                    
+                    <div class="p-3 rounded-4 border shadow-sm {% if latest_log.stress_category == 'Burnout Warning' %}border-danger bg-danger-subtle{% elif latest_log.stress_category == 'Anxiety Alert' %}border-warning bg-warning-subtle{% else %}border-success bg-success-subtle{% endif %}">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h5 class="fw-bold mb-0 {% if latest_log.stress_category == 'Burnout Warning' %}text-danger{% elif latest_log.stress_category == 'Anxiety Alert' %}text-warning{% else %}text-success{% endif %}">
+                                {% if latest_log.stress_category == 'Burnout Warning' %}
+                                    <i class="fa-solid fa-triangle-exclamation me-2 fa-beat-fade"></i>Burnout Warning
+                                {% elif latest_log.stress_category == 'Anxiety Alert' %}
+                                    <i class="fa-solid fa-shield-virus me-2"></i>Anxiety Alert
+                                {% else %}
+                                    <i class="fa-solid fa-circle-check me-2"></i>Stable Wellness Profile
+                                {% endif %}
+                            </h5>
+                            <span class="extra-small text-muted fw-semibold">Polarity Score: <strong>{{ latest_log.polarity }}</strong></span>
+                        </div>
+                        <p class="mb-0 small text-dark fst-italic" style="line-height: 1.5;">"{{ latest_log.feedback_text }}"</p>
+                    </div>
+                </div>
+                
+                <label class="form-label extra-small fw-bold text-muted text-uppercase mb-2">Sentiment Polarity Trajectory (-1.0 to +1.0)</label>
+                <div style="height: 190px; position: relative;" class="flex-grow-1">
+                    <canvas id="polarityChart"></canvas>
+                </div>
+            {% else %}
+                <div class="text-center py-5 my-auto text-muted d-flex flex-column align-items-center justify-content-center flex-grow-1">
+                    <i class="fa-solid fa-face-smile fa-3x mb-3 text-indigo" style="opacity: 0.3;"></i>
+                    <h5 class="fw-bold text-dark mb-1">No Journal Entries Yet</h5>
+                    <p class="small text-muted mb-0">Write your first check-in entry to visualize sentiment polarity trends and burnout analytics!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Admin View: Corporate Diagnostics -->
+{% if current_user.role == 'admin' %}
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-danger h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-shield-halved fs-5 text-rose"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Stress Alerts Matrix</h4>
+            </div>
+            
+            <div class="d-grid gap-3">
+                <div class="p-3 rounded-3 border border-danger d-flex justify-content-between align-items-center bg-danger-subtle">
+                    <div>
+                        <h3 class="fw-bold text-danger mb-0">{{ admin_metrics.burnout_alerts }}</h3>
+                        <span class="text-muted extra-small fw-bold text-uppercase">Burnout Warnings Flagged</span>
+                    </div>
+                    <i class="fa-solid fa-triangle-exclamation text-danger fs-3"></i>
+                </div>
+                
+                <div class="p-3 rounded-3 border border-warning d-flex justify-content-between align-items-center bg-warning-subtle">
+                    <div>
+                        <h3 class="fw-bold text-warning mb-0">{{ admin_metrics.anxiety_alerts }}</h3>
+                        <span class="text-muted extra-small fw-bold text-uppercase">Anxiety Alerts Flagged</span>
+                    </div>
+                    <i class="fa-solid fa-shield-virus text-warning fs-3"></i>
+                </div>
+                
+                <div class="p-3 rounded-3 border border-success d-flex justify-content-between align-items-center bg-success-subtle">
+                    <div>
+                        <h3 class="fw-bold text-success mb-0">{{ admin_metrics.stable_profiles }}</h3>
+                        <span class="text-muted extra-small fw-bold text-uppercase">Stable / Positive Profiles</span>
+                    </div>
+                    <i class="fa-solid fa-circle-check text-success fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-accent h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-eye-slash fs-5 text-cyan"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Anonymous Sentiment Log Feed</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Auditing feedback narratives anonymously to isolate workplace pressure patterns.</p>
+            
+            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                <table class="table align-middle table-hover border rounded-3 overflow-hidden small mb-0">
+                    <thead class="table-light extra-small text-muted text-uppercase fw-bold">
+                        <tr>
+                            <th>Feedback Excerpt</th>
+                            <th>Polarity</th>
+                            <th>Subjectivity</th>
+                            <th>AI Diagnosis</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in all_logs %}
+                        <tr>
+                            <td><span class="text-muted">"{{ l.feedback_text|truncate(60) }}"</span></td>
+                            <td><span class="fw-bold text-indigo">{{ l.polarity }}</span></td>
+                            <td>{{ l.subjectivity }}</td>
+                            <td>
+                                {% if l.stress_category == 'Burnout Warning' %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-1">Burnout Alert</span>
+                                {% elif l.stress_category == 'Anxiety Alert' %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1">Anxiety Alert</span>
+                                {% else %}
+                                    <span class="badge bg-success rounded-pill px-3 py-1">Stable Profile</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="text-muted extra-small">{{ l.created_at.strftime("%m-%d %H:%M") }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No feedback surveys submitted yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function fillJournalPreset(text) {
+    const input = document.getElementById("journalInput");
+    if (input) {
+        input.value = text;
+        input.focus();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    {% if timeline_dates %}
+    const ctx = document.getElementById('polarityChart').getContext('2d');
+    const dates = {{ timeline_dates|tojson }};
+    const polarityValues = {{ timeline_polarity|tojson }};
+    
+    // Gradient fill for line chart
+    const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+    gradient.addColorStop(0, 'rgba(124, 58, 237, 0.35)');
+    gradient.addColorStop(1, 'rgba(79, 70, 229, 0.02)');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Sentiment Index',
+                data: polarityValues,
+                borderColor: '#7c3aed',
+                backgroundColor: gradient,
+                borderWidth: 3,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#ffffff',
+                pointBorderWidth: 2.5,
+                pointBorderColor: '#4f46e5'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { 
+                    min: -1.0, 
+                    max: 1.0,
+                    ticks: {
+                        callback: function(value) {
+                            if (value === 1) return "Positive 😊";
+                            if (value === 0) return "Neutral 😐";
+                            if (value === -1) return "Negative 😔";
+                            return value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

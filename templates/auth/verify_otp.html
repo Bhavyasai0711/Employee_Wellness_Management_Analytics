@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP | Employee Wellness{% endblock %}
+{% block content %}
+<section class="auth-section">
+    <div class="auth-card glass-card">
+        <i class="fa-solid fa-key auth-icon"></i>
+        <h1>Verify OTP</h1>
+        <p class="text-muted">Use the OTP printed in the Flask terminal.</p>
+        <form method="post">
+            <label class="form-label">OTP</label>
+            <input class="form-control mb-4 otp-input" name="otp" maxlength="6" required>
+            <button class="btn btn-primary w-100 btn-lg" type="submit">Verify OTP</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

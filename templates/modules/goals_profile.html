@@ -1,0 +1,170 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Goals & Achievements Profile | AI Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-bullseye me-1 text-emerald"></i> Module 9 Goals &amp; Achievements
+        </span>
+        <h2 class="fw-bold text-dark mb-0">{% if selected_employee and current_user.role == 'admin' %}{{ selected_employee.full_name }}'s{% else %}My{% endif %} Goals &amp; Achievements Profile</h2>
+    </div>
+</div>
+
+<!-- Admin Selection Toolbar (Admin only) -->
+{% if current_user.role == 'admin' %}
+<div class="glass-card p-3 mb-4 rounded-4 shadow-sm border d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-users-viewfinder me-2 text-indigo"></i>Inspect Employee Goals Profile
+        </h5>
+    </div>
+    <form method="get" class="d-flex gap-2 mb-0">
+        <select class="form-select form-select-sm rounded-pill px-3" name="employee_id" style="width: 250px;" required>
+            <option value="">-- Select Employee --</option>
+            {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if selected_employee and selected_employee.id == emp.id %}selected{% endif %}>{{ emp.full_name }} ({{ emp.department }})</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" type="submit">View Profile</button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Create Personal Goal Form (Employee View) -->
+{% if current_user.role == 'employee' %}
+<div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary mb-4">
+    <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+        <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+            <i class="fa-solid fa-plus fs-5 text-indigo"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-0">Create Personal Wellness Goal</h4>
+    </div>
+    
+    <form method="post" action="{{ url_for('module9.create_goal') }}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-dark mb-1">Goal Title</label>
+                <input class="form-control rounded-pill px-3" name="title" placeholder="e.g., Daily 10k Steps Target" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-dark mb-1">Metric</label>
+                <select class="form-select rounded-pill px-3" name="metric">
+                    <option value="steps">Steps Walked</option>
+                    <option value="sleep">Sleep Hours</option>
+                    <option value="water">Water Intake (L)</option>
+                    <option value="wellness">Wellness Score</option>
+                    <option value="custom">Custom Goal</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-dark mb-1">Target Value</label>
+                <input class="form-control rounded-pill px-3" name="target_value" type="number" min="0.1" step="0.1" placeholder="e.g., 10000" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-dark mb-1">Unit</label>
+                <input class="form-control rounded-pill px-3" name="unit" placeholder="e.g., steps">
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-gradient-action w-100 rounded-pill py-2 fw-bold" type="submit" title="Save Goal">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Active Goals List -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-success h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-bullseye fs-5 text-emerald"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Active Personal Goals</h4>
+            </div>
+            
+            {% if goals %}
+                <div class="d-grid gap-3">
+                    {% for goal in goals %}
+                    <div class="p-3 rounded-4 border shadow-sm {% if goal.is_completed %}border-success bg-success-subtle{% else %}border-primary bg-light{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h5 class="fw-bold mb-0 text-dark fs-6">{{ goal.title }}</h5>
+                            <span class="badge rounded-pill {% if goal.is_completed %}bg-success text-white{% else %}bg-primary text-white{% endif %} px-3 py-1 extra-small fw-bold">
+                                {{ goal.progress_percent }}%
+                            </span>
+                        </div>
+                        
+                        <div class="progress rounded-pill my-2 shadow-sm" style="height: 10px; background: #e2e8f0;">
+                            <div class="progress-bar rounded-pill {% if goal.is_completed %}bg-success{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ goal.progress_percent }}%;"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center extra-small text-muted mb-2">
+                            <span>Progress: <strong>{{ goal.current_value }} / {{ goal.target_value }} {{ goal.unit }}</strong></span>
+                            {% if goal.is_completed %}
+                                <strong class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Goal Completed!</strong>
+                            {% endif %}
+                        </div>
+
+                        {% if current_user.role == 'employee' %}
+                        <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top">
+                            <form method="post" action="{{ url_for('module9.update_goal_progress', goal_id=goal.id) }}" class="d-flex gap-2 align-items-center mb-0" style="flex-grow: 1;">
+                                <input class="form-control form-control-sm rounded-pill px-3" name="current_value" type="number" min="0" step="0.1" value="{{ goal.current_value }}" required style="width: 130px;">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" type="submit">Update Progress</button>
+                            </form>
+                            
+                            <form method="post" action="{{ url_for('module9.delete_goal', goal_id=goal.id) }}" class="mb-0" onsubmit="return confirm('Archive this goal?');">
+                                <button class="btn btn-sm btn-light text-danger rounded-circle p-1" type="submit" title="Delete Goal">
+                                    <i class="fa-solid fa-trash-can fs-6"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-bullseye fs-1 text-muted mb-3 opacity-30"></i>
+                    <p class="mb-0">No active personal goals created yet. Use the form above to launch your first wellness target!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Unlocked Achievements Sidebar -->
+    <div class="col-lg-5">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-award fs-5 text-amber"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Unlocked Achievements</h4>
+            </div>
+
+            {% if achievements %}
+                <div class="d-grid gap-3">
+                    {% for achievement in achievements %}
+                    <div class="p-3 rounded-4 border border-warning bg-warning-subtle d-flex align-items-center gap-3">
+                        <div class="badge bg-warning text-dark border border-warning rounded-circle shadow-sm" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            🏆
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">Milestone Unlocked</h6>
+                            <p class="text-muted extra-small mb-0" style="line-height: 1.4;">{{ achievement }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-medal fs-1 text-muted mb-3 opacity-30"></i>
+                    <p class="mb-0">Keep logging your health records, step count, and sleep routines to unlock milestone badges!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

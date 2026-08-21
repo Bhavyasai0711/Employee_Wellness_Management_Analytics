@@ -1,0 +1,226 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Admin Health Records | Employee Wellness Analytics{% endblock %}
+
+{% block dashboard_content %}
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-notes-medical me-1 text-indigo"></i> Module 2 Admin
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Employee Health Records</h2>
+    </div>
+    <a class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm" href="{{ url_for('module2.export_csv') }}">
+        <i class="fa-solid fa-file-csv me-2 text-indigo"></i>Export CSV
+    </a>
+</div>
+
+<!-- 7 Top KPI Summary Cards -->
+<div class="row g-3 mb-4">
+    {% set cards = [
+        ("Average BMI", metrics.average_bmi, "fa-weight-scale", "border-top-primary", "text-indigo", "bg-primary-subtle"),
+        ("Average Wellness Score", metrics.average_wellness, "fa-heart-pulse", "border-top-success", "text-emerald", "bg-success-subtle"),
+        ("Employees with High Risk", metrics.high_risk, "fa-triangle-exclamation", "border-top-danger", "text-rose", "bg-danger-subtle"),
+        ("Employees with Normal BMI", metrics.normal_bmi, "fa-circle-check", "border-top-primary", "text-cyan", "bg-info-subtle"),
+        ("Average Sleep", metrics.average_sleep ~ " hrs", "fa-bed", "border-top-accent", "text-cyan", "bg-info-subtle"),
+        ("Average Exercise", metrics.average_exercise ~ " days", "fa-person-running", "border-top-warning", "text-amber", "bg-warning-subtle"),
+        ("Average Attendance", metrics.average_attendance ~ "%", "fa-calendar-check", "border-top-success", "text-emerald", "bg-success-subtle")
+    ] %}
+    {% for title, value, icon, border_cls, icon_clr, bg_clr in cards %}
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-3.5 rounded-4 shadow-sm border {{ border_cls }} h-100 d-flex align-items-center gap-3">
+            <div class="icon-circle {{ bg_clr }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; border-radius: 14px;">
+                <i class="fa-solid {{ icon }} fs-4 {{ icon_clr }}"></i>
+            </div>
+            <div>
+                <span class="text-muted extra-small d-block fw-semibold">{{ title }}</span>
+                <strong class="fs-4 text-dark fw-bold">{{ value }}</strong>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Search & Filter Bar -->
+<form class="glass-card p-4 rounded-4 shadow-sm border border-top-primary mb-4" method="get">
+    <div class="row g-3 align-items-end">
+        <div class="col-lg-3">
+            <label class="form-label fw-bold extra-small text-dark">Search Employee</label>
+            <input class="form-control rounded-pill px-3" name="search" value="{{ request.args.get('search', '') }}" placeholder="ID, name, department, blood group">
+        </div>
+        <div class="col-lg-2">
+            <label class="form-label fw-bold extra-small text-dark">Department</label>
+            <select class="form-select rounded-pill px-3" name="department">
+                <option value="">All</option>
+                {% for department in departments %}
+                    <option value="{{ department }}" {% if request.args.get('department') == department %}selected{% endif %}>{{ department }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <label class="form-label fw-bold extra-small text-dark">BMI Category</label>
+            <select class="form-select rounded-pill px-3" name="bmi_category">
+                <option value="">All</option>
+                {% for item in bmi_categories %}
+                    <option value="{{ item }}" {% if request.args.get('bmi_category') == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <label class="form-label fw-bold extra-small text-dark">Stress Level</label>
+            <select class="form-select rounded-pill px-3" name="stress_level">
+                <option value="">All</option>
+                {% for item in options.stress_levels %}
+                    <option value="{{ item }}" {% if request.args.get('stress_level') == item %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-1">
+            <label class="form-label fw-bold extra-small text-dark">Risk</label>
+            <select class="form-select rounded-pill px-3" name="risk_band">
+                <option value="">All</option>
+                <option value="high" {% if request.args.get('risk_band') == 'high' %}selected{% endif %}>High</option>
+                <option value="normal" {% if request.args.get('risk_band') == 'normal' %}selected{% endif %}>Normal</option>
+            </select>
+        </div>
+        <div class="col-lg-1">
+            <label class="form-label fw-bold extra-small text-dark">Sort</label>
+            <select class="form-select rounded-pill px-3" name="sort">
+                <option value="updated">Updated</option>
+                <option value="department" {% if request.args.get('sort') == 'department' %}selected{% endif %}>Dept</option>
+                <option value="bmi" {% if request.args.get('sort') == 'bmi' %}selected{% endif %}>BMI</option>
+                <option value="risk" {% if request.args.get('sort') == 'risk' %}selected{% endif %}>Risk</option>
+            </select>
+        </div>
+        <div class="col-lg-1">
+            <button class="btn btn-primary rounded-pill w-100 fw-bold shadow-sm" type="submit">Apply</button>
+        </div>
+    </div>
+</form>
+
+<!-- Analytics Charts Grid -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-4"><div class="glass-card p-3 rounded-4 shadow-sm border border-top-primary" style="height: 280px; position: relative;"><canvas id="bmiChart"></canvas></div></div>
+    <div class="col-lg-4"><div class="glass-card p-3 rounded-4 shadow-sm border border-top-success" style="height: 280px; position: relative;"><canvas id="ageChart"></canvas></div></div>
+    <div class="col-lg-4"><div class="glass-card p-3 rounded-4 shadow-sm border border-top-purple" style="height: 280px; position: relative;"><canvas id="stressChart"></canvas></div></div>
+    <div class="col-lg-4"><div class="glass-card p-3 rounded-4 shadow-sm border border-top-warning" style="height: 280px; position: relative;"><canvas id="sleepChart"></canvas></div></div>
+    <div class="col-lg-4"><div class="glass-card p-3 rounded-4 shadow-sm border border-top-accent" style="height: 280px; position: relative;"><canvas id="exerciseChart"></canvas></div></div>
+    <div class="col-lg-4"><div class="glass-card p-3 rounded-4 shadow-sm border border-top-danger" style="height: 280px; position: relative;"><canvas id="attendanceChart"></canvas></div></div>
+</div>
+
+<!-- Employee Health Records Table -->
+<div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary mb-4">
+    <div class="mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-dark mb-1 fs-5">
+            <i class="fa-solid fa-list-check me-2 text-indigo"></i>Employee Health Log Directory
+        </h4>
+        <p class="text-muted small mb-0">Detailed view of registered employee biometrics, wellness scores, and risk classifications.</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0 border-0 small">
+            <thead>
+                <tr class="extra-small text-muted text-uppercase fw-bold border-bottom">
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>BMI &amp; Category</th>
+                    <th>Wellness Score</th>
+                    <th>Health Risk</th>
+                    <th>Sleep</th>
+                    <th>Attendance</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr class="border-bottom">
+                    <td><strong class="text-dark">{{ record.user.full_name }}</strong><br><span class="text-muted extra-small"><code>{{ record.employee_code }}</code></span></td>
+                    <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 extra-small fw-bold">{{ record.user.department }}</span></td>
+                    <td><strong class="text-dark">{{ record.bmi }}</strong> <span class="badge bg-secondary-subtle text-dark border rounded-pill px-2 py-0.5 extra-small ms-1">{{ record.bmi_category }}</span></td>
+                    <td>
+                        <span class="badge {% if record.wellness_score >= 75 %}bg-success{% elif record.wellness_score >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %} text-white rounded-pill px-3 py-1 extra-small fw-bold">
+                            {{ record.wellness_score }} / 100
+                        </span>
+                    </td>
+                    <td><span class="badge {% if record.health_risk_score > 50 %}bg-danger{% else %}bg-success{% endif %} text-white rounded-pill px-2.5 py-1 extra-small">{{ record.health_risk_score }}%</span></td>
+                    <td>{{ record.sleep_hours }} hrs</td>
+                    <td><strong class="text-success">{{ record.attendance_percentage }}%</strong></td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 extra-small me-1" href="{{ url_for('module2.view_record', record_id=record.id) }}">
+                            <i class="fa-solid fa-eye me-1"></i>View
+                        </a>
+                        <a class="btn btn-sm btn-outline-secondary rounded-pill fw-bold px-3 extra-small" href="{{ url_for('module2.edit_record', record_id=record.id) }}">
+                            <i class="fa-solid fa-pen-to-square me-1"></i>Edit
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No health records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- AI Auditing & Outlier Resolution Table -->
+<div class="glass-card p-4 rounded-4 shadow-sm border border-top-danger mb-4">
+    <div class="mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-dark mb-1 fs-5">
+            <i class="fa-solid fa-shield-halved me-2 text-danger"></i>AI Auditing &amp; Outlier Resolution
+        </h4>
+        <p class="text-muted small mb-0">The dynamic Isolation Forest model and rule checks have flagged the following metrics as statistical outliers or anomalies.</p>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table align-middle mb-0 border-0 small">
+            <thead>
+                <tr class="extra-small text-muted text-uppercase fw-bold border-bottom">
+                    <th>Record ID</th>
+                    <th>Field</th>
+                    <th>Reported Value</th>
+                    <th>AI Explanation</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for anomaly in anomalies %}
+                <tr class="border-bottom">
+                    <td><strong>#{{ anomaly.employee_health_id }}</strong></td>
+                    <td><code>{{ anomaly.field_name }}</code></td>
+                    <td><span class="badge bg-warning text-dark rounded-pill px-3 py-1 extra-small fw-bold">{{ anomaly.value }}</span></td>
+                    <td>{{ anomaly.description }}</td>
+                    <td>
+                        {% if anomaly.status == 'Flagged' %}
+                            <span class="badge bg-danger text-white rounded-pill px-3 py-1 extra-small fw-bold">Flagged</span>
+                        {% elif anomaly.status == 'Approved' %}
+                            <span class="badge bg-success text-white rounded-pill px-3 py-1 extra-small fw-bold">Approved (Overridden)</span>
+                        {% else %}
+                            <span class="badge bg-info text-white rounded-pill px-3 py-1 extra-small fw-bold">Resolved</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if anomaly.status == 'Flagged' %}
+                            <form action="{{ url_for('module2.resolve_anomaly', anomaly_id=anomaly.id, action='approve') }}" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-outline-success rounded-pill px-3 extra-small fw-bold" type="submit">Approve Override</button>
+                            </form>
+                            <form action="{{ url_for('module2.resolve_anomaly', anomaly_id=anomaly.id, action='resolve') }}" method="post" class="d-inline ms-1">
+                                <button class="btn btn-sm btn-outline-info rounded-pill px-3 extra-small fw-bold" type="submit">Resolve</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted extra-small">No action needed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-3">No anomalies currently flagged by AI models.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+window.healthCharts = {{ charts|tojson }};
+</script>
+{% endblock %}

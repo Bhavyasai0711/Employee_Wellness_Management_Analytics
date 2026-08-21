@@ -1,0 +1,677 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Qwen AI Wellness Assistant & Checkup Scheduler | Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+<style>
+/* ChatGPT/Gemini style Chatbot UI */
+.chat-window {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    height: 620px;
+    overflow: hidden;
+}
+.chat-header {
+    background: #ffffff;
+    color: #1e293b;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f1f5f9;
+}
+.chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.chat-header-status {
+    width: 9px;
+    height: 9px;
+    background-color: #10b981;
+    border-radius: 50%;
+}
+.btn-clear-chat {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-clear-chat:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.chat-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #f8fafc;
+}
+.message-bubble-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 82%;
+}
+.message-bubble-wrapper.user {
+    align-self: flex-end;
+}
+.message-bubble-wrapper.bot {
+    align-self: flex-start;
+}
+.message-bubble {
+    padding: 14px 20px;
+    border-radius: 18px;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    word-break: break-word;
+}
+.message-bubble.user {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+}
+.message-bubble.bot {
+    background: #ffffff;
+    color: #1e293b;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+.message-time {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 4px;
+    align-self: flex-end;
+}
+.message-bubble-wrapper.bot .message-time {
+    align-self: flex-start;
+}
+
+.chat-footer {
+    padding: 16px 24px 20px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+}
+
+.chat-suggest-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 12px;
+}
+.chat-suggest-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.chat-input-group {
+    display: flex;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 4px 10px;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+.chat-input-group:focus-within {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+.chat-input {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    padding: 10px;
+    font-size: 0.92rem;
+    color: #0f172a;
+}
+.chat-input:focus {
+    outline: none;
+}
+.btn-send {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-send:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-mic {
+    background: rgba(79, 70, 229, 0.1);
+    color: #4f46e5;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-mic:hover {
+    background: #4f46e5;
+    color: #ffffff;
+}
+.btn-mic.is-listening {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
+    animation: mic-pulse 1.2s infinite;
+}
+
+@keyframes mic-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.appointment-sidebar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    height: 100%;
+}
+.appointment-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+.appointment-title {
+    font-size: 0.92rem;
+    font-weight: 750;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+.appointment-time {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+}
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background: #94a3b8;
+    border-radius: 50%;
+    animation: bounce 1.3s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+</style>
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-robot me-1 text-purple"></i> Module 7 AI Chatbot
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Qwen AI Wellness Assistant &amp; Checkup Scheduler</h2>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Chat Window -->
+    <div class="col-lg-8">
+        <div class="chat-window border-top-primary">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; border-radius: 12px;">
+                        <i class="fa-solid fa-robot fs-4 text-indigo"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0 fs-6">Qwen Wellness Coach</h4>
+                        <div class="d-flex align-items-center gap-1.5 mt-0.5">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small px-2 py-0.5 fw-bold">
+                                <i class="fa-solid fa-circle text-success extra-small me-1" style="font-size: 0.5rem;"></i>Active Multilingual Assister
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Multilingual Language Selector -->
+                    <select class="form-select form-select-sm rounded-pill px-3 fw-bold text-dark" id="chatLanguageSelect" style="font-size: 0.8rem; border: 1px solid #cbd5e1; width: auto;" title="Select Voice & AI Response Language">
+                        <option value="en-US">🇺🇸 English</option>
+                        <option value="hi-IN">🇮🇳 Hindi (हिंदी)</option>
+                        <option value="te-IN">🇮🇳 Telugu (తెలుగు)</option>
+                        <option value="ta-IN">🇮🇳 Tamil (தமிழ்)</option>
+                        <option value="es-ES">🇪🇸 Spanish (Español)</option>
+                        <option value="fr-FR">🇫🇷 French (Français)</option>
+                        <option value="de-DE">🇩🇪 German (Deutsch)</option>
+                    </select>
+                    
+                    <!-- Auto-Read Response Toggle -->
+                    <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3" id="autoReadToggleBtn" onclick="toggleAutoRead()" title="Auto-Read AI Answers">
+                        <i class="fa-solid fa-volume-high me-1"></i> Auto-Read: <span id="autoReadStatus">OFF</span>
+                    </button>
+
+                    <form action="{{ url_for('module7.clear_chat') }}" method="post" class="mb-0" onsubmit="return confirm('Are you sure you want to clear your entire chat history?');">
+                        <button class="btn-clear-chat" type="submit">
+                            <i class="fa-solid fa-trash-can"></i>Clear
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Chat history scrollbox -->
+            <div class="chat-body" id="chatBody">
+                <div class="message-bubble-wrapper bot">
+                    <div class="message-bubble bot">
+                        Hello! I am your Qwen AI Wellness assistant. Ask me questions about fitness, request a motivational quote, check your BMI metrics, or type "schedule checkup" to log a medical consult!
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mt-1 ms-1">
+                        <button class="btn btn-link btn-sm p-0 text-indigo speak-btn text-decoration-none fw-bold extra-small" onclick="speakChatMessage(this)" title="Read out response">
+                            <i class="fa-solid fa-volume-high me-1"></i>Listen
+                        </button>
+                        <span class="message-time">10:00</span>
+                    </div>
+                </div>
+                
+                {% for msg in messages %}
+                    <div class="message-bubble-wrapper {% if msg.sender == 'user' %}user{% else %}bot{% endif %}">
+                        <div class="message-bubble {% if msg.sender == 'user' %}user{% else %}bot{% endif %}">
+                            {{ msg.message_text }}
+                        </div>
+                        {% if msg.sender == 'bot' %}
+                            <div class="d-flex align-items-center gap-2 mt-1 ms-1">
+                                <button class="btn btn-link btn-sm p-0 text-indigo speak-btn text-decoration-none fw-bold extra-small" onclick="speakChatMessage(this)" title="Read out response">
+                                    <i class="fa-solid fa-volume-high me-1"></i>Listen
+                                </button>
+                                <span class="message-time">{{ msg.timestamp.strftime("%H:%M") }}</span>
+                            </div>
+                        {% else %}
+                            <span class="message-time">{{ msg.timestamp.strftime("%H:%M") }}</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="chat-footer">
+                <!-- Suggestion Chips -->
+                <div class="chat-suggest-chips">
+                    <button class="btn btn-sm bg-primary-subtle text-primary border border-primary-subtle rounded-pill extra-small fw-bold px-3 py-1" onclick="triggerChip('Schedule a virtual checkup')">
+                        📅 Schedule Checkup
+                    </button>
+                    <button class="btn btn-sm bg-success-subtle text-success border border-success-subtle rounded-pill extra-small fw-bold px-3 py-1" onclick="triggerChip('Is my BMI healthy?')">
+                        🩺 Check Vitals
+                    </button>
+                    <button class="btn btn-sm bg-warning-subtle text-amber border border-warning-subtle rounded-pill extra-small fw-bold px-3 py-1" onclick="triggerChip('Give me some health motivation')">
+                        💡 Motivational Quote
+                    </button>
+                    <button class="btn btn-sm bg-info-subtle text-cyan border border-info-subtle rounded-pill extra-small fw-bold px-3 py-1" onclick="triggerChip('How much water should I drink?')">
+                        💧 Hydration Target
+                    </button>
+                </div>
+                
+                <div class="chat-input-group">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Ask a question or request a wellness schedule..." onkeydown="if(event.key==='Enter') sendMessage();">
+                    <button class="btn btn-mic me-1.5" id="micBtn" onclick="toggleVoiceInput()" title="Speak Message (Multilingual Voice Input)">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <button class="btn btn-send" onclick="sendMessage()"><i class="fa-solid fa-arrow-up"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Appointments Schedule Sidebar -->
+    <div class="col-lg-4">
+        <div class="appointment-sidebar border-top-success">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-2 border-bottom">
+                <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-calendar-check fs-5 text-emerald"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Checkup Schedule</h4>
+            </div>
+            
+            <div id="appointmentsList" style="max-height: 480px; overflow-y: auto;">
+                {% for appt in appointments %}
+                    <div class="appointment-card border-top-primary d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="appointment-title">{{ appt.doctor_name }}</div>
+                            <div class="appointment-time"><i class="fa-solid fa-clock me-1 text-primary"></i>{{ appt.appointment_date }}</div>
+                            <span class="badge bg-success rounded-pill mt-2 px-3 py-1 extra-small fw-bold">{{ appt.status }}</span>
+                        </div>
+                        <form action="{{ url_for('module7.cancel_appointment', id=appt.id) }}" method="post" class="mb-0">
+                            <button class="btn btn-sm btn-light text-danger rounded-circle p-1" type="submit" title="Cancel Appointment" onclick="return confirm('Cancel this scheduled appointment?');">
+                                <i class="fa-solid fa-circle-xmark fs-5"></i>
+                            </button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-calendar-xmark fs-1 text-muted mb-3 opacity-30"></i>
+                        <p class="mb-0">No checkups scheduled yet. Try typing "schedule checkup" to book one!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatBody = document.getElementById("chatBody");
+let voiceRecognition = null;
+let isVoiceListening = false;
+
+document.addEventListener("DOMContentLoaded", function() {
+    const bubbles = document.querySelectorAll(".message-bubble");
+    bubbles.forEach(b => {
+        const raw = b.innerText;
+        b.innerHTML = parseMessageMarkdown(raw);
+    });
+    chatBody.scrollTop = chatBody.scrollHeight;
+});
+
+let autoReadEnabled = false;
+let currentChatActiveBtn = null;
+
+function toggleAutoRead() {
+    autoReadEnabled = !autoReadEnabled;
+    const statusSpan = document.getElementById("autoReadStatus");
+    const btn = document.getElementById("autoReadToggleBtn");
+    if (statusSpan && btn) {
+        statusSpan.textContent = autoReadEnabled ? "ON" : "OFF";
+        if (autoReadEnabled) {
+            btn.classList.add("btn-primary");
+            btn.classList.remove("btn-outline-primary");
+        } else {
+            btn.classList.add("btn-outline-primary");
+            btn.classList.remove("btn-primary");
+        }
+    }
+}
+
+function speakChatMessage(btn, customText=null) {
+    if (!('speechSynthesis' in window)) {
+        alert("Text-to-speech is not supported in this browser.");
+        return;
+    }
+
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        if (currentChatActiveBtn) {
+            resetChatSpeakBtn(currentChatActiveBtn);
+        }
+        if (currentChatActiveBtn === btn) {
+            currentChatActiveBtn = null;
+            return;
+        }
+    }
+
+    let textToSpeak = customText;
+    if (!textToSpeak && btn) {
+        const wrapper = btn.closest('.message-bubble-wrapper');
+        if (wrapper) {
+            const bubble = wrapper.querySelector('.message-bubble');
+            if (bubble) textToSpeak = bubble.innerText;
+        }
+    }
+
+    if (!textToSpeak) return;
+
+    const lang = document.getElementById("chatLanguageSelect") ? document.getElementById("chatLanguageSelect").value : "en-US";
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = lang;
+
+    const voices = window.speechSynthesis.getVoices();
+    const matchedVoice = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+    if (matchedVoice) {
+        utterance.voice = matchedVoice;
+    }
+
+    utterance.onstart = function() {
+        if (btn) {
+            btn.classList.add("text-danger");
+            btn.innerHTML = '<i class="fa-solid fa-square me-1"></i>Stop';
+            currentChatActiveBtn = btn;
+        }
+    };
+
+    utterance.onend = function() {
+        if (btn) resetChatSpeakBtn(btn);
+        currentChatActiveBtn = null;
+    };
+
+    utterance.onerror = function() {
+        if (btn) resetChatSpeakBtn(btn);
+        currentChatActiveBtn = null;
+    };
+
+    window.speechSynthesis.speak(utterance);
+}
+
+function resetChatSpeakBtn(btn) {
+    btn.classList.remove("text-danger");
+    btn.innerHTML = '<i class="fa-solid fa-volume-high me-1"></i>Listen';
+}
+
+function toggleVoiceInput() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Voice Speech Recognition is not supported in this browser. Please use Google Chrome, Edge, or Safari.");
+        return;
+    }
+
+    const micBtn = document.getElementById("micBtn");
+    const chatInput = document.getElementById("chatInput");
+    const selectedLang = document.getElementById("chatLanguageSelect") ? document.getElementById("chatLanguageSelect").value : "en-US";
+
+    if (isVoiceListening && voiceRecognition) {
+        voiceRecognition.stop();
+        return;
+    }
+
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.lang = selectedLang;
+    voiceRecognition.continuous = false;
+    voiceRecognition.interimResults = true;
+
+    voiceRecognition.onstart = function() {
+        isVoiceListening = true;
+        micBtn.classList.add("is-listening");
+        micBtn.innerHTML = '<i class="fa-solid fa-microphone-lines"></i>';
+        chatInput.placeholder = `Listening in ${selectedLang}... Speak now...`;
+    };
+
+    voiceRecognition.onresult = function(event) {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+        }
+        chatInput.value = transcript;
+    };
+
+    voiceRecognition.onerror = function(event) {
+        stopVoiceInputUI();
+        if (event.error === 'not-allowed') {
+            alert("Microphone access permission was denied. Please allow microphone access in your browser site settings.");
+        }
+    };
+
+    voiceRecognition.onend = function() {
+        stopVoiceInputUI();
+        if (chatInput.value.trim().length > 0) {
+            setTimeout(() => {
+                sendMessage();
+            }, 600);
+        }
+    };
+
+    voiceRecognition.start();
+}
+
+function stopVoiceInputUI() {
+    isVoiceListening = false;
+    const micBtn = document.getElementById("micBtn");
+    const chatInput = document.getElementById("chatInput");
+    if (micBtn) {
+        micBtn.classList.remove("is-listening");
+        micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+    }
+    if (chatInput) {
+        chatInput.placeholder = "Ask a question or request a wellness schedule...";
+    }
+}
+
+function triggerChip(text) {
+    document.getElementById("chatInput").value = text;
+    sendMessage();
+}
+
+function parseMessageMarkdown(text) {
+    if (!text) return "";
+    let html = text
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">");
+    
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\n/g, '<br/>');
+    return html;
+}
+
+function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+    if (!text) return;
+    
+    const selectedLang = document.getElementById("chatLanguageSelect") ? document.getElementById("chatLanguageSelect").value : "en-US";
+    input.value = "";
+    
+    const userWrapper = document.createElement("div");
+    userWrapper.className = "message-bubble-wrapper user";
+    
+    const userBubble = document.createElement("div");
+    userBubble.className = "message-bubble user";
+    userBubble.innerText = text;
+    userWrapper.appendChild(userBubble);
+    
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+    const timeSpan = document.createElement("span");
+    timeSpan.className = "message-time";
+    timeSpan.innerText = timeStr;
+    userWrapper.appendChild(timeSpan);
+    
+    chatBody.appendChild(userWrapper);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    
+    const typingBubble = document.createElement("div");
+    typingBubble.className = "typing-dots";
+    typingBubble.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
+    chatBody.appendChild(typingBubble);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    
+    fetch("{{ url_for('module7.ask') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: text, language: selectedLang })
+    })
+    .then(res => res.json())
+    .then(data => {
+        typingBubble.remove();
+        
+        const botWrapper = document.createElement("div");
+        botWrapper.className = "message-bubble-wrapper bot";
+        
+        const botBubble = document.createElement("div");
+        botBubble.className = "message-bubble bot";
+        botBubble.innerHTML = parseMessageMarkdown(data.response);
+        botWrapper.appendChild(botBubble);
+        
+        const metaDiv = document.createElement("div");
+        metaDiv.className = "d-flex align-items-center gap-2 mt-1 ms-1";
+        
+        const listenBtn = document.createElement("button");
+        listenBtn.className = "btn btn-link btn-sm p-0 text-indigo speak-btn text-decoration-none fw-bold extra-small";
+        listenBtn.onclick = function() { speakChatMessage(listenBtn); };
+        listenBtn.innerHTML = '<i class="fa-solid fa-volume-high me-1"></i>Listen';
+        metaDiv.appendChild(listenBtn);
+        
+        const botTimeSpan = document.createElement("span");
+        botTimeSpan.className = "message-time";
+        botTimeSpan.innerText = timeStr;
+        metaDiv.appendChild(botTimeSpan);
+        
+        botWrapper.appendChild(metaDiv);
+        
+        chatBody.appendChild(botWrapper);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        
+        if (autoReadEnabled) {
+            speakChatMessage(listenBtn, data.response);
+        }
+        
+        const lowerText = text.toLowerCase();
+        const bookingKeywords = ["book", "schedule", "appointment", "checkup", "doctor", "consult"];
+        const matchesBooking = bookingKeywords.some(kw => lowerText.includes(kw));
+        
+        if (matchesBooking) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 2500);
+        }
+    })
+    .catch(err => {
+        typingBubble.remove();
+        const errorBubble = document.createElement("div");
+        errorBubble.className = "message-bubble bot text-danger";
+        errorBubble.innerText = "Error: Unable to connect to chatbot service.";
+        chatBody.appendChild(errorBubble);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    });
+}
+</script>
+{% endblock %}

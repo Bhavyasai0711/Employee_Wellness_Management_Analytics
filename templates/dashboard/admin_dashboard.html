@@ -1,0 +1,275 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Admin Dashboard | Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-shield-halved me-1 text-purple"></i> Admin Console
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Employee Wellness Management Analytics</h2>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-danger text-white rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#deleteEmployeeModal">
+            <i class="fa-solid fa-user-xmark me-2"></i>Delete Employee
+        </button>
+        <span class="badge bg-primary text-white rounded-pill px-3 py-2 extra-small fw-bold shadow-sm">Enterprise View</span>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Card 1: Employee Directory -->
+    <div class="col-sm-6 col-xl-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; border-radius: 14px;">
+                    <i class="fa-solid fa-users-gear fs-4 text-indigo"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2 fs-5">Employee Directory</h4>
+                <p class="text-muted small mb-3" style="line-height: 1.5;">Currently tracking <strong class="text-dark fs-6">{{ employee_count }}</strong> registered employees in the organization.</p>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 extra-small fw-bold align-self-start">Registered staff directory</span>
+        </div>
+    </div>
+    
+    <!-- Card 2: Health Data -->
+    <div class="col-sm-6 col-xl-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-success h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; border-radius: 14px;">
+                    <i class="fa-solid fa-notes-medical fs-4 text-emerald"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2 fs-5">Employee Health Data</h4>
+                <p class="text-muted small mb-3" style="line-height: 1.5;">Review personal logs, blood pressure, BMI, and vital statistics indices in the log directory.</p>
+            </div>
+            <a href="{{ url_for('module2.index') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-bold text-uppercase extra-small align-self-start">
+                View Health Directory <i class="fa-solid fa-chevron-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Card 3: Prediction -->
+    <div class="col-sm-6 col-xl-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-purple h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="icon-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; border-radius: 14px;">
+                    <i class="fa-solid fa-brain fs-4 text-purple"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2 fs-5">Wellness Risk Prediction</h4>
+                <p class="text-muted small mb-3" style="line-height: 1.5;">Audit employee stress, burnout, and hypertension risks using the trained ML model matrix.</p>
+            </div>
+            <a href="{{ url_for('module3.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold text-uppercase extra-small align-self-start">
+                Forecast Wellness Risks <i class="fa-solid fa-chevron-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Card 4: Recommendation -->
+    <div class="col-sm-6 col-xl-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; border-radius: 14px;">
+                    <i class="fa-solid fa-lightbulb fs-4 text-amber"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2 fs-5">Wellness Recommendations</h4>
+                <p class="text-muted small mb-3" style="line-height: 1.5;">Check active content-based and collaborative-filtering recommendations matching biometrics.</p>
+            </div>
+            <a href="{{ url_for('module4.index') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold text-uppercase extra-small align-self-start">
+                Access Wellness Plans <i class="fa-solid fa-chevron-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Card 5: Mental Health -->
+    <div class="col-sm-6 col-xl-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-accent h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="icon-circle bg-info-subtle text-info d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; border-radius: 14px;">
+                    <i class="fa-solid fa-face-smile fs-4 text-cyan"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2 fs-5">Mental Health Analytics</h4>
+                <p class="text-muted small mb-3" style="line-height: 1.5;">Analyze employee feedback texts anonymously using TextBlob NLP sentiment models.</p>
+            </div>
+            <a href="{{ url_for('module5.index') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-bold text-uppercase extra-small align-self-start">
+                Audit Sentiment Logs <i class="fa-solid fa-chevron-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Card 6: Analytics -->
+    <div class="col-sm-6 col-xl-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 d-flex flex-column justify-content-between">
+            <div>
+                <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; border-radius: 14px;">
+                    <i class="fa-solid fa-chart-pie fs-4 text-indigo"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2 fs-5">Dashboard &amp; Analytics</h4>
+                <p class="text-muted small mb-3" style="line-height: 1.5;">Visualize organization-wide wellness KPIs, productivity indices, and predictive trend curves.</p>
+            </div>
+            <a href="{{ url_for('module6.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold text-uppercase extra-small align-self-start">
+                View Performance BI <i class="fa-solid fa-chevron-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Account Management Section -->
+<div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold text-dark mb-1 fs-5">
+                <i class="fa-solid fa-users-gear me-2 text-indigo"></i>Employee Account Directory &amp; Admin Control
+            </h4>
+            <p class="text-muted small mb-0">Manage registered organization users and perform administrative actions.</p>
+        </div>
+        <button class="btn btn-danger btn-sm text-white rounded-pill fw-bold px-3" data-bs-toggle="modal" data-bs-target="#deleteEmployeeModal">
+            <i class="fa-solid fa-user-minus me-1.5"></i>Delete Employee
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0 border-0 small">
+            <thead>
+                <tr class="extra-small text-muted text-uppercase fw-bold border-bottom">
+                    <th>Employee ID</th>
+                    <th>Full Name</th>
+                    <th>Email Address</th>
+                    <th>Department</th>
+                    <th>Gender</th>
+                    <th class="text-end">Administrative Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in all_users %}
+                <tr class="border-bottom">
+                    <td><code>{{ u.employee_id }}</code></td>
+                    <td><strong class="text-dark">{{ u.full_name }}</strong></td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 extra-small fw-bold">{{ u.department }}</span></td>
+                    <td>{{ u.gender }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3 extra-small" onclick="openDeleteEmployeeModal('{{ u.id }}', '{{ u.full_name|e }}', '{{ u.employee_id|e }}')">
+                            <i class="fa-solid fa-trash-can me-1"></i>Delete Account
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No registered employees found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Employee Deletion Audit Trail Table -->
+<div class="glass-card p-4 rounded-4 shadow-sm border border-top-danger mb-4">
+    <div class="mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-dark mb-1 fs-5">
+            <i class="fa-solid fa-file-shield me-2 text-danger"></i>Employee Deletion Compliance Audit Trail
+        </h4>
+        <p class="text-muted small mb-0">Audited log recording all administrative employee account deletions, timestamps, and specified reasons.</p>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table align-middle mb-0 border-0 small">
+            <thead>
+                <tr class="extra-small text-muted text-uppercase fw-bold border-bottom">
+                    <th>Log ID</th>
+                    <th>Employee Name &amp; Code</th>
+                    <th>Email</th>
+                    <th>Specified Deletion Reason</th>
+                    <th>Deleted By (Admin)</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in deletion_logs %}
+                <tr class="border-bottom">
+                    <td><strong>#{{ log.id }}</strong></td>
+                    <td><strong class="text-dark">{{ log.employee_name }}</strong><br><span class="text-muted extra-small">{{ log.employee_code }}</span></td>
+                    <td><code>{{ log.employee_email }}</code></td>
+                    <td>
+                        <span class="badge bg-danger text-white rounded-pill px-3 py-1 extra-small fw-bold mb-1">{{ log.reason }}</span>
+                        {% if log.notes %}
+                            <div class="text-muted extra-small" style="font-size: 0.78rem;">{{ log.notes }}</div>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-secondary-subtle text-dark border rounded-pill px-3 py-1 extra-small">{{ log.admin_name }}</span></td>
+                    <td class="extra-small text-muted">{{ log.deleted_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-3">No employee deletion logs recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Delete Employee Modal -->
+<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" aria-labelledby="deleteEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header bg-danger text-white p-3" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                <h5 class="modal-title mb-0 text-white fw-bold" id="deleteEmployeeModalLabel"><i class="fa-solid fa-triangle-exclamation me-2"></i>Delete Employee Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('module2.delete_employee') }}" method="post">
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Administrative deletion will permanently remove the employee profile, health records, and chat history. You must specify a valid reason for auditing compliance.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Select Employee <span class="text-danger">*</span></label>
+                        <select class="form-select rounded-pill px-3" id="deleteUserIdSelect" name="user_id" required>
+                            <option value="">-- Choose Employee to Delete --</option>
+                            {% for u in all_users %}
+                                <option value="{{ u.id }}">{{ u.full_name }} ({{ u.employee_id }}) - {{ u.department }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Reason for Deletion <span class="text-danger">*</span></label>
+                        <select class="form-select rounded-pill px-3" name="reason" required>
+                            <option value="">-- Select Deletion Reason --</option>
+                            <option value="Resignation / Left Company">Resignation / Left Company</option>
+                            <option value="Termination / Disciplinary Action">Termination / Disciplinary Action</option>
+                            <option value="Policy Violation / Non-Compliance">Policy Violation / Non-Compliance</option>
+                            <option value="Duplicate / Erroneous Entry">Duplicate / Erroneous Entry</option>
+                            <option value="Employee Request / Data Cleanup">Employee Request / Data Cleanup</option>
+                            <option value="Other / Administrative Override">Other (Specify in notes below)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Additional Administrative Notes (Optional)</label>
+                        <textarea class="form-control rounded-3 p-3" name="notes" rows="2" placeholder="Provide extra details or reference numbers..."></textarea>
+                    </div>
+
+                    <div class="alert alert-warning rounded-3 small mb-0 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation fa-lg text-warning"></i>
+                        <div>This action will be logged in the <strong>Employee Deletion Audit Trail</strong> with your admin ID.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold">Confirm Deletion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDeleteEmployeeModal(userId, name, code) {
+    const select = document.getElementById("deleteUserIdSelect");
+    if (select) {
+        select.value = userId;
+    }
+    const modalEl = document.getElementById("deleteEmployeeModal");
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
+</script>
+{% endblock %}

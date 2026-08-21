@@ -1,0 +1,44 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Upload Profile Picture | Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-camera me-1 text-purple"></i> Profile Customization
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Upload &amp; Change Profile Picture</h2>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary text-center">
+            <h4 class="fw-bold text-dark mb-3">Current Profile Picture</h4>
+            
+            <div class="mx-auto mb-4 d-flex align-items-center justify-content-center shadow-lg position-relative overflow-hidden" style="width: 120px; height: 120px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #06b6d4 100%); border: 4px solid #ffffff; border-radius: 50%;">
+                {% if current_user.profile_image and current_user.profile_image != 'default.png' %}
+                    <img src="{{ url_for('static', filename='uploads/profile_images/' + current_user.profile_image) }}" alt="{{ current_user.full_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    <i class="fa-solid fa-user-shield text-white" style="font-size: 3.2rem;"></i>
+                {% endif %}
+            </div>
+            
+            <form method="POST" enctype="multipart/form-data" class="text-start">
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-dark mb-2">Select New Profile Photo</label>
+                    <input type="file" name="profile_image" class="form-control rounded-pill px-3 py-2" accept="image/*" required>
+                    <div class="form-text extra-small text-muted mt-1">Recommended: JPG or PNG image, square aspect ratio.</div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{{ url_for('auth.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Cancel</a>
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold" type="submit">
+                        <i class="fa-solid fa-cloud-arrow-up me-2"></i>Upload Photo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

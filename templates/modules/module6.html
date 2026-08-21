@@ -1,0 +1,438 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Performance Dashboard | AI Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-chart-column me-1 text-purple"></i> Module 6 Org Dashboard
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Wellness Performance Dashboard &amp; Analytics</h2>
+    </div>
+</div>
+
+<!-- Admin Selection Toolbar -->
+{% if current_user.role == 'admin' %}
+<div class="glass-card p-3 mb-4 rounded-4 shadow-sm border d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-users-viewfinder me-2 text-indigo"></i>Inspect Individual Employee Analytics
+        </h5>
+    </div>
+    <form method="get" class="d-flex gap-2 mb-0">
+        <select class="form-select form-select-sm rounded-pill px-3" name="employee_id" style="width: 250px;" required>
+            <option value="">-- Select Employee --</option>
+            {% for emp in employees %}
+                <option value="{{ emp.id }}">{{ emp.full_name }} ({{ emp.department }})</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" type="submit">Inspect Profile</button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Top KPI Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Participation Rate</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.participation_rate }}%</h3>
+            </div>
+            <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-users-gear fs-4 text-indigo"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-danger h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Absenteeism Rate</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.absenteeism_rate }}%</h3>
+            </div>
+            <div class="icon-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-calendar-minus fs-4 text-danger"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-success h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Productivity Index</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.productivity_index }}/100</h3>
+            </div>
+            <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-chart-line fs-4 text-emerald"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Avg Health Risk</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.average_risk }}/100</h3>
+            </div>
+            <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-heart-pulse fs-4 text-amber"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-accent h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Avg Daily Steps</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.avg_steps }}</h3>
+            </div>
+            <div class="icon-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-person-walking fs-4 text-cyan"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-purple h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Avg Sleep Hours</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.avg_sleep }} hrs</h3>
+            </div>
+            <div class="icon-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-moon fs-4 text-purple"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Avg Daily Water</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.avg_water }} L</h3>
+            </div>
+            <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-droplet fs-4 text-indigo"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-pink h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Avg Wellness Score</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ metrics.avg_wellness }}/100</h3>
+            </div>
+            <div class="icon-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; border-radius: 14px;">
+                <i class="fa-solid fa-face-smile fs-4 text-rose"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Chart 1: Predictive Wellness Trend -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-arrow-trend-up fs-5 text-indigo"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Predictive Wellness Trend &amp; 30-Day Forecast</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Model-based trend forecasting derived from historical wellness indexes. Dotted values indicate regression forecasts.</p>
+            <div style="height: 250px; position: relative;">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Strategic Insights -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-purple h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-brain-circuit fs-5 text-purple"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">HR Action Insights</h4>
+            </div>
+            
+            <div class="insight-list">
+                {% for item in insights %}
+                    <div class="p-3 rounded-3 mb-2 border shadow-sm small fw-semibold
+                        {% if item.type == 'danger' %}bg-danger-subtle text-danger border-danger
+                        {% elif item.type == 'warning' %}bg-warning-subtle text-dark border-warning
+                        {% else %}bg-success-subtle text-success border-success{% endif %}">
+                        <i class="fa-solid 
+                            {% if item.type == 'danger' %}fa-triangle-exclamation
+                            {% elif item.type == 'warning' %}fa-shield-exclamation
+                            {% else %}fa-circle-check{% endif %} me-2"></i>
+                        {{ item.message }}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">No corporate wellness issues flagged. All metrics stable.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Chart 2: Department-wise Health & Stress -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-network-wired fs-5 text-amber"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Department Wellness vs. Stress Spikes</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Compares average wellness scores against percentage of employees flagging high stress levels by department.</p>
+            <div style="height: 240px; position: relative;">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart 3: Health Risk vs Attendance correlation -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-success">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-diagram-scatter fs-5 text-emerald"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Biometric Risk vs. Absenteeism Correlation</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Scatter plot mapping physiological health risk indices against absenteeism percentages.</p>
+            <div style="height: 240px; position: relative;">
+                <canvas id="scatterChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Chart 4: Stress Level Distribution (Pie/Doughnut Chart) -->
+    <div class="col-lg-5">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-accent h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-chart-pie fs-5 text-cyan"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Stress Levels Distribution</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Doughnut chart displaying employee percentage mapped to each stress severity level.</p>
+            <div style="height: 240px; position: relative;">
+                <canvas id="stressPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 5: Sleep Duration vs Productivity (Line Chart) -->
+    <div class="col-lg-7">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-pink h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-chart-line fs-5 text-rose"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Sleep Duration vs. Productivity Correlation</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Line chart showing calculated productivity index based on logged sleep duration groups.</p>
+            <div style="height: 240px; position: relative;">
+                <canvas id="sleepProdChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Predictive Forecast Chart
+    const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+    const histX = {{ hist_x|tojson }};
+    const histY = {{ hist_y|tojson }};
+    const foreX = {{ fore_x|tojson }};
+    const foreY = {{ fore_y|tojson }};
+    
+    const combinedLabels = histX.concat(foreX);
+    const extendedHist = histY.concat(Array(foreY.length).fill(null));
+    const extendedFore = Array(histY.length - 1).fill(null).concat([histY[histY.length - 1]]).concat(foreY);
+    
+    new Chart(forecastCtx, {
+        type: 'line',
+        data: {
+            labels: combinedLabels,
+            datasets: [
+                {
+                    label: 'Historical Wellness Score',
+                    data: extendedHist,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.25
+                },
+                {
+                    label: 'Predictive Trend Forecast (30 Days)',
+                    data: extendedFore,
+                    borderColor: '#a855f7',
+                    borderDash: [6, 6],
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.25,
+                    pointStyle: 'rectRot',
+                    pointRadius: 5
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { min: 0, max: 100 }
+            }
+        }
+    });
+
+    // 2. Department Chart
+    const deptCtx = document.getElementById('deptChart').getContext('2d');
+    const deptNames = {{ dept_names|tojson }};
+    const deptWellness = {{ dept_wellness|tojson }};
+    const deptStress = {{ dept_stress|tojson }};
+    
+    new Chart(deptCtx, {
+        type: 'bar',
+        data: {
+            labels: deptNames,
+            datasets: [
+                {
+                    label: 'Avg Wellness Index',
+                    data: deptWellness,
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Dept Stress Spike %',
+                    data: deptStress,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+
+    // 3. Scatter Chart
+    const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+    const pointsData = {{ scatter_points|tojson }};
+    
+    new Chart(scatterCtx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Employee Data Profiles',
+                data: pointsData.map(p => ({ x: p.x, y: p.y })),
+                backgroundColor: '#10b981',
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const index = ctx.dataIndex;
+                            const peer = pointsData[index];
+                            return peer.label + ': Risk ' + peer.x + ' | Absenteeism ' + peer.y + '%';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { title: { display: true, text: 'Physiological Health Risk' }, min: 0, max: 100 },
+                y: { title: { display: true, text: 'Absenteeism %' }, min: 0, max: 100 }
+            }
+        }
+    });
+
+    // 4. Stress Levels Distribution (Doughnut/Pie Chart)
+    const stressCtx = document.getElementById('stressPieChart').getContext('2d');
+    const stressCounts = {{ metrics.stress_counts|tojson }};
+    new Chart(stressCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(stressCounts),
+            datasets: [{
+                data: Object.values(stressCounts),
+                backgroundColor: [
+                    '#10b981', // Low: Green
+                    '#06b6d4', // Moderate: Cyan
+                    '#f59e0b', // High: Amber
+                    '#ef4444'  // Severe: Red
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        font: { size: 11, weight: 'bold' }
+                    }
+                }
+            }
+        }
+    });
+
+    // 5. Sleep vs Productivity (Line Chart)
+    const sleepCtx = document.getElementById('sleepProdChart').getContext('2d');
+    const sleepRanges = {{ metrics.sleep_ranges|tojson }};
+    const sleepProd = {{ metrics.sleep_productivity|tojson }};
+    new Chart(sleepCtx, {
+        type: 'line',
+        data: {
+            labels: sleepRanges,
+            datasets: [{
+                label: 'Avg Productivity Index',
+                data: sleepProd,
+                borderColor: '#ec4899',
+                backgroundColor: 'rgba(236, 72, 153, 0.08)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#ec4899',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100, title: { display: true, text: 'Productivity Index' } },
+                x: { title: { display: true, text: 'Sleep Hours Range' } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

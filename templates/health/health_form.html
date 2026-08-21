@@ -1,0 +1,289 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}{{ mode }} Health Record | Employee Wellness{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-notes-medical me-1"></i> Module 2 Form
+        </span>
+        <h2 class="fw-bold text-dark mb-0">{{ mode }} Health Record</h2>
+    </div>
+    <a class="btn btn-outline-primary px-4 py-2 rounded-pill fw-bold" href="{{ url_for('module2.index') }}">
+        <i class="fa-solid fa-arrow-left me-2"></i>Back to Health Data
+    </a>
+</div>
+
+<form method="post" class="glass-card health-form p-4 rounded-4 shadow-sm border mb-4">
+    <!-- Section 1: Body Metrics -->
+    <div class="form-section-header mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-indigo mb-0">
+            <i class="fa-solid fa-weight-scale me-2"></i>1. Body Metrics
+        </h4>
+    </div>
+    
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Height (cm)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-arrows-up-down text-indigo"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" min="50" max="250" name="height_cm" value="{{ record.height_cm if record else '' }}" required placeholder="172.0">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Weight (kg)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-weight-scale text-indigo"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" min="20" max="250" name="weight_kg" value="{{ record.weight_kg if record else '' }}" required placeholder="68.5">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Age</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-regular fa-calendar text-indigo"></i></span>
+                <input class="form-control border-start-0" type="number" min="1" max="100" name="age" value="{{ record.age if record else '' }}" required placeholder="28">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Gender</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-venus-mars text-indigo"></i></span>
+                <select class="form-select border-start-0" name="gender" required>
+                    {% for item in ["Female", "Male", "Other", "Prefer not to say"] %}
+                        <option value="{{ item }}" {% if record and record.gender == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Clinical Information -->
+    <div class="form-section-header mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-indigo mb-0">
+            <i class="fa-solid fa-heart-pulse me-2"></i>2. Clinical Information
+        </h4>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Blood Group</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-droplet text-rose"></i></span>
+                <select class="form-select border-start-0" name="blood_group" required>
+                    {% for item in options.blood_groups %}
+                        <option value="{{ item }}" {% if record and record.blood_group == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Blood Pressure</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-stethoscope text-rose"></i></span>
+                <input class="form-control border-start-0" name="blood_pressure" placeholder="120/80" value="{{ record.blood_pressure if record else '' }}" required>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Heart Rate (bpm)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-heart-pulse text-rose"></i></span>
+                <input class="form-control border-start-0" type="number" min="30" max="220" name="heart_rate" value="{{ record.heart_rate if record else '' }}" required placeholder="72">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Blood Sugar (mg/dL)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-vial text-rose"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" name="blood_sugar" value="{{ record.blood_sugar if record else '' }}" placeholder="95.0">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Cholesterol (mg/dL)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-cubes text-rose"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" name="cholesterol" value="{{ record.cholesterol if record else '' }}" placeholder="180.0">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Health Checkup Date</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-regular fa-calendar-days text-indigo"></i></span>
+                <input class="form-control border-start-0" type="date" name="health_checkup_date" value="{{ record.health_checkup_date if record and record.health_checkup_date else '' }}">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Mental Health Score (0-100)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-brain text-purple"></i></span>
+                <input class="form-control border-start-0" type="number" min="0" max="100" name="mental_health_score" value="{{ record.mental_health_score if record else '' }}" placeholder="75">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Disability Status</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-wheelchair text-muted"></i></span>
+                <input class="form-control border-start-0" name="disability_status" value="{{ record.disability_status if record else '' }}" placeholder="None">
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Medical Conditions</label>
+            <textarea class="form-control" name="medical_conditions" rows="2" placeholder="List medical conditions if any...">{{ record.medical_conditions if record else '' }}</textarea>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Allergies</label>
+            <textarea class="form-control" name="allergies" rows="2" placeholder="List allergies if any...">{{ record.allergies if record else '' }}</textarea>
+        </div>
+
+        <div class="col-lg-4 col-md-12">
+            <label class="form-label small fw-bold text-dark mb-1">Current Medications</label>
+            <textarea class="form-control" name="current_medications" rows="2" placeholder="List ongoing medications if any...">{{ record.current_medications if record else '' }}</textarea>
+        </div>
+    </div>
+
+    <!-- Section 3: Lifestyle and Work Wellness -->
+    <div class="form-section-header mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-indigo mb-0">
+            <i class="fa-solid fa-person-running me-2"></i>3. Lifestyle & Work Wellness
+        </h4>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Smoking Habit</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-smoking text-amber"></i></span>
+                <select class="form-select border-start-0" name="smoking_habit" required>
+                    {% for item in options.smoking_options %}
+                        <option value="{{ item }}" {% if record and record.smoking_habit == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Alcohol Consumption</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-wine-glass text-amber"></i></span>
+                <select class="form-select border-start-0" name="alcohol_consumption" required>
+                    {% for item in options.alcohol_options %}
+                        <option value="{{ item }}" {% if record and record.alcohol_consumption == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Water Intake (Litres / Day)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-bottle-water text-cyan"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" min="0" max="10" name="daily_water_litres" value="{{ record.daily_water_litres if record else '' }}" required placeholder="2.5">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Sleep Hours / Night</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-bed text-indigo"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" min="0" max="24" name="sleep_hours" value="{{ record.sleep_hours if record else '' }}" required placeholder="7.5">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Exercise Frequency</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-dumbbell text-emerald"></i></span>
+                <select class="form-select border-start-0" name="exercise_frequency" required>
+                    {% for item in options.exercise_frequencies %}
+                        <option value="{{ item }}" {% if record and record.exercise_frequency == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Exercise Type</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-person-walking text-emerald"></i></span>
+                <input class="form-control border-start-0" name="exercise_type" value="{{ record.exercise_type if record else '' }}" placeholder="Yoga, Cardio">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Daily Step Count</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-shoe-prints text-emerald"></i></span>
+                <input class="form-control border-start-0" type="number" min="0" name="daily_step_count" value="{{ record.daily_step_count if record else '' }}" placeholder="8000">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Calories Burned (kcal)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-fire text-amber"></i></span>
+                <input class="form-control border-start-0" type="number" min="0" name="calories_burned" value="{{ record.calories_burned if record else '' }}" placeholder="500">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Stress Level</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-face-grimace text-rose"></i></span>
+                <select class="form-select border-start-0" name="stress_level" required>
+                    {% for item in options.stress_levels %}
+                        <option value="{{ item }}" {% if record and record.stress_level == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Attendance Rate (%)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-user-check text-indigo"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" min="0" max="100" name="attendance_percentage" value="{{ record.attendance_percentage if record else '' }}" required placeholder="95.0">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Work Hours / Day</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-clock text-indigo"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" min="0" max="24" name="work_hours_per_day" value="{{ record.work_hours_per_day if record else '' }}" placeholder="8.0">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <label class="form-label small fw-bold text-dark mb-1">Screen Time (Hours)</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-solid fa-laptop text-indigo"></i></span>
+                <input class="form-control border-start-0" type="number" step="0.1" min="0" max="24" name="screen_time" value="{{ record.screen_time if record else '' }}" placeholder="6.5">
+            </div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label small fw-bold text-dark mb-1">Doctor Remarks / Notes</label>
+            <textarea class="form-control" name="doctor_remarks" rows="3" placeholder="Enter physician remarks or notes...">{{ record.doctor_remarks if record else '' }}</textarea>
+        </div>
+    </div>
+
+    <!-- Submit Action Bar -->
+    <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+        <a class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold" href="{{ url_for('module2.index') }}">Cancel</a>
+        <button class="btn btn-gradient-action px-4 py-2 shadow-sm" type="submit">
+            <i class="fa-solid fa-floppy-disk me-2"></i>Save Health Record
+        </button>
+    </div>
+</form>
+{% endblock %}

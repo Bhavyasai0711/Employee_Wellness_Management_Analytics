@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="dashboard-shell">
+    <aside class="sidebar">
+        <!-- Animated Luminous User Profile Box -->
+        <div class="sidebar-profile-card text-center py-3.5 px-3 rounded-4 mb-4 position-relative overflow-hidden">
+            <a href="{{ url_for('auth.upload_profile') }}" class="avatar-link-wrapper d-inline-block position-relative mb-2 text-decoration-none" title="Click to Change Profile Picture">
+                <!-- Rotating Animated Gradient Ring -->
+                <div class="animated-avatar-ring"></div>
+                <div class="animated-avatar-inner d-flex align-items-center justify-content-center overflow-hidden">
+                    {% if current_user.profile_image and current_user.profile_image != 'default.png' %}
+                        <img src="{{ url_for('static', filename='uploads/profile_images/' + current_user.profile_image) }}" alt="{{ current_user.full_name }}" class="profile-avatar-img">
+                    {% else %}
+                        <i class="fa-solid fa-user-shield fs-4 text-white"></i>
+                    {% endif %}
+                </div>
+                <!-- Camera Overlay Badge -->
+                <span class="avatar-camera-overlay">
+                    <i class="fa-solid fa-camera"></i>
+                </span>
+                <!-- Online Status Pulse Dot -->
+                <span class="avatar-online-dot"></span>
+            </a>
+            
+            <h6 class="profile-user-name fw-bold mb-1.5">{{ current_user.full_name }}</h6>
+            <div class="d-flex align-items-center justify-content-center">
+                <span class="badge rounded-pill profile-role-badge px-3 py-1 extra-small fw-bold">
+                    <i class="fa-solid fa-circle text-success me-1 extra-small" style="font-size: 0.45rem;"></i>{{ current_user.role|title }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Vibrant Navigation Items -->
+        <nav class="nav flex-column gap-1.5">
+            <a class="nav-link-custom {% if request.endpoint == 'auth.dashboard' %}active{% endif %}" href="{{ url_for('auth.dashboard') }}">
+                <i class="fa-solid fa-chart-line nav-icon-badge nav-icon-indigo"></i><span>Dashboard</span>
+            </a>
+            <a class="nav-link-custom {% if 'module2' in request.endpoint %}active{% endif %}" href="{{ url_for('module2.index') }}">
+                <i class="fa-solid fa-notes-medical nav-icon-badge nav-icon-emerald"></i><span>Health Data</span>
+            </a>
+            <a class="nav-link-custom {% if 'module3' in request.endpoint %}active{% endif %}" href="{{ url_for('module3.index') }}">
+                <i class="fa-solid fa-brain nav-icon-badge nav-icon-violet"></i><span>Prediction</span>
+            </a>
+            <a class="nav-link-custom {% if 'module4' in request.endpoint %}active{% endif %}" href="{{ url_for('module4.index') }}">
+                <i class="fa-solid fa-lightbulb nav-icon-badge nav-icon-amber"></i><span>Recommendation</span>
+            </a>
+            <a class="nav-link-custom {% if 'module5' in request.endpoint %}active{% endif %}" href="{{ url_for('module5.index') }}">
+                <i class="fa-solid fa-face-smile nav-icon-badge nav-icon-cyan"></i><span>Mental Health</span>
+            </a>
+            <a class="nav-link-custom {% if 'module6' in request.endpoint %}active{% endif %}" href="{{ url_for('module6.index') }}">
+                <i class="fa-solid fa-chart-pie nav-icon-badge nav-icon-blue"></i><span>Analytics</span>
+            </a>
+            <a class="nav-link-custom {% if 'module7' in request.endpoint %}active{% endif %}" href="{{ url_for('module7.index') }}">
+                <i class="fa-solid fa-comments nav-icon-badge nav-icon-pink"></i><span>AI Chatbot</span>
+            </a>
+            <a class="nav-link-custom {% if 'module8' in request.endpoint %}active{% endif %}" href="{{ url_for('module8.index') }}">
+                <i class="fa-solid fa-trophy nav-icon-badge nav-icon-gold"></i><span>Challenges</span>
+            </a>
+            <a class="nav-link-custom {% if 'module9' in request.endpoint %}active{% endif %}" href="{{ url_for('module9.index') }}">
+                <i class="fa-solid fa-bullseye nav-icon-badge nav-icon-emerald"></i><span>Goals &amp; Achievements</span>
+            </a>
+            <div class="sidebar-divider my-3"></div>
+            <a class="nav-link-custom nav-link-logout" href="{{ url_for('auth.logout') }}">
+                <i class="fa-solid fa-right-from-bracket nav-icon-badge nav-icon-rose"></i><span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <div class="dashboard-content">
+        {% block dashboard_content %}{% endblock %}
+    </div>
+</section>
+{% endblock %}

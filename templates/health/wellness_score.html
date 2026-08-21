@@ -1,0 +1,107 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Wellness Score | AI Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <span class="eyebrow badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-heart-pulse me-1"></i> Module 2 Analytics
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Employee Wellness Score Breakdown</h2>
+    </div>
+    <a class="btn btn-outline-primary px-4 py-2 rounded-pill fw-bold" href="{{ url_for('module2.index') }}">
+        <i class="fa-solid fa-arrow-left me-2"></i>Back to Health Data
+    </a>
+</div>
+
+{% if record %}
+<div class="row g-4 mb-4">
+    <!-- Score Gauge Card -->
+    <div class="col-lg-5">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-success h-100 text-center d-flex flex-column justify-content-center">
+            <div class="icon-circle bg-success-subtle text-success mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 16px;">
+                <i class="fa-solid fa-heart-circle-check fs-3 text-emerald"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Overall Wellness Score</h4>
+            <div class="display-3 fw-bold text-emerald my-2">
+                {{ record.wellness_score }}<span class="fs-4 text-muted">/100</span>
+            </div>
+            <div class="mb-3">
+                {% if record.wellness_score >= 80 %}
+                    <span class="badge bg-success fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-star me-1"></i> Excellent Wellness</span>
+                {% elif record.wellness_score >= 60 %}
+                    <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-thumbs-up me-1"></i> Good Wellness</span>
+                {% elif record.wellness_score >= 40 %}
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-circle-exclamation me-1"></i> Average Wellness</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-triangle-exclamation me-1"></i> Needs Improvement</span>
+                {% endif %}
+            </div>
+            <p class="text-muted small mb-0">Calculated from wearable telemetry, sleep duration, exercise frequency, water intake, and attendance metrics.</p>
+        </div>
+    </div>
+
+    <!-- Telemetry Component Breakdown -->
+    <div class="col-lg-7">
+        <div class="glass-card p-4 rounded-4 shadow-sm border h-100">
+            <h4 class="fw-bold text-dark mb-3">
+                <i class="fa-solid fa-list-check me-2 text-indigo"></i>Score Component Factors
+            </h4>
+            
+            <div class="vstack gap-3">
+                <div>
+                    <div class="d-flex justify-content-between small fw-bold mb-1">
+                        <span><i class="fa-solid fa-moon text-indigo me-2"></i>Sleep Duration</span>
+                        <span>{{ record.sleep_hours }} hrs / 8 hrs target</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-indigo" style="width: {{ (record.sleep_hours / 8 * 100)|round }}%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between small fw-bold mb-1">
+                        <span><i class="fa-solid fa-person-running text-emerald me-2"></i>Exercise Frequency</span>
+                        <span>{{ record.exercise_frequency }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: 75%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between small fw-bold mb-1">
+                        <span><i class="fa-solid fa-droplet text-cyan me-2"></i>Water Intake</span>
+                        <span>{{ record.daily_water_litres }} L / 3.0 L target</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: {{ (record.daily_water_litres / 3 * 100)|round }}%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between small fw-bold mb-1">
+                        <span><i class="fa-solid fa-user-check text-amber me-2"></i>Attendance & Engagement</span>
+                        <span>{{ record.attendance_percentage }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: {{ record.attendance_percentage }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="glass-card p-5 text-center rounded-4 shadow-sm border">
+    <i class="fa-solid fa-heart-pulse fs-1 text-muted mb-3"></i>
+    <h3 class="fw-bold text-dark">No Health Record Found</h3>
+    <p class="text-muted mb-4">Please submit your health assessment to calculate your Wellness Score.</p>
+    <a class="btn btn-primary px-4 py-2 rounded-pill fw-bold" href="{{ url_for('module2.add_record') }}">
+        <i class="fa-solid fa-plus me-2"></i>Add Health Record
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

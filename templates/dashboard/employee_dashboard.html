@@ -1,0 +1,215 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Employee Dashboard | Employee Wellness Analytics{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-sparkles text-purple me-1"></i> Employee Portal
+        </span>
+        <h2 class="fw-bold text-dark mb-1">Welcome, {{ current_user.first_name }}</h2>
+        <p class="text-muted small mb-0">
+            Monitor your health profile and real-time AI wellness analytics.
+        </p>
+    </div>
+
+    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-bold">
+        <i class="fa-solid fa-circle text-success me-1 fs-6"></i> Session Active
+    </span>
+</div>
+
+<div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+        <div class="glass-card h-100 p-4 rounded-4 shadow-sm border border-top-primary d-flex flex-column justify-content-between">
+            <div>
+                <div class="text-center">
+                    <div class="position-relative d-inline-block">
+                        <img src="{{ url_for('static', filename='uploads/profile_images/' + (current_user.profile_image or 'default.png')) }}"
+                             class="rounded-circle border border-3 border-white shadow"
+                             width="105"
+                             height="105"
+                             style="object-fit:cover;">
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle p-2" title="Online Active"></span>
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{{ url_for('auth.upload_profile') }}" class="btn btn-outline-primary btn-sm px-4 py-2 rounded-pill fw-bold">
+                            <i class="fa-solid fa-camera me-1 text-indigo"></i> Change Photo
+                        </a>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <table class="table table-borderless small mb-0">
+                    <tr>
+                        <th class="ps-0 text-muted"><i class="fa-solid fa-id-badge me-2 text-violet"></i>Employee ID</th>
+                        <td class="fw-bold text-indigo">: {{ current_user.employee_id }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0 text-muted"><i class="fa-solid fa-user me-2 text-indigo"></i>Name</th>
+                        <td class="fw-bold text-dark">: {{ current_user.full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0 text-muted"><i class="fa-solid fa-building me-2 text-cyan"></i>Department</th>
+                        <td class="fw-semibold text-dark">: {{ current_user.department }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0 text-muted"><i class="fa-solid fa-envelope me-2 text-emerald"></i>Email</th>
+                        <td class="fw-semibold text-truncate" style="max-width: 140px;">: {{ current_user.email }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0 text-muted"><i class="fa-solid fa-shield-halved me-2 text-emerald"></i>Status</th>
+                        <td><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">Active</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wellness Score Card -->
+    <div class="col-lg-4">
+        <div class="glass-card h-100 p-4 rounded-4 shadow-sm border border-top-success d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border-radius: 12px;">
+                        <i class="fa-solid fa-heart-pulse fs-5 text-emerald"></i>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
+                        Wellness Score
+                    </span>
+                </div>
+
+                {% if health %}
+                    <div class="display-5 fw-bold text-dark mb-1">
+                        {{ health.wellness_score }}<span class="fs-4 text-muted">/100</span>
+                    </div>
+
+                    <div class="progress rounded-pill mt-2 mb-3 shadow-sm" style="height: 10px; background: #e2e8f0;">
+                        <div class="progress-bar rounded-pill" role="progressbar" style="width: {{ health.wellness_score|default(0) }}%; background: linear-gradient(90deg, #10b981 0%, #06b6d4 100%);"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {% if health.wellness_score >= 80 %}
+                            <span class="badge bg-success text-white fs-6 px-3 py-1.5 rounded-pill fw-bold"><i class="fa-solid fa-star me-1"></i> Excellent</span>
+                        {% elif health.wellness_score >= 60 %}
+                            <span class="badge bg-primary text-white fs-6 px-3 py-1.5 rounded-pill fw-bold"><i class="fa-solid fa-thumbs-up me-1"></i> Good</span>
+                        {% elif health.wellness_score >= 40 %}
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-1.5 rounded-pill fw-bold"><i class="fa-solid fa-circle-exclamation me-1"></i> Average</span>
+                        {% else %}
+                            <span class="badge bg-danger text-white fs-6 px-3 py-1.5 rounded-pill fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Needs Improvement</span>
+                        {% endif %}
+                    </div>
+
+                    <small class="text-muted d-block extra-small mb-3">
+                        <i class="fa-regular fa-clock me-1"></i> Last Updated: {{ health.updated_at.strftime('%d %b %Y') }}
+                    </small>
+                {% else %}
+                    <p class="text-muted mt-3">Your health profile has not been logged yet.</p>
+                    <a href="{{ url_for('module2.add_record') }}" class="btn btn-primary btn-sm px-4 py-2 rounded-pill fw-bold">
+                        Complete Profile
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if health %}
+                <!-- Daily Wellness Quote -->
+                <div class="p-3 rounded-4 border bg-light-subtle shadow-sm mt-3" style="border-color: #cbd5e1 !important;">
+                    <p class="mb-1 text-dark fw-semibold italic" style="font-size: 0.88rem; line-height: 1.5;">
+                        "{{ quote.quote }}"
+                    </p>
+                    <small class="text-muted extra-small fw-bold">— {{ quote.author }}</small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Health Summary Card -->
+    <div class="col-lg-4">
+        <div class="glass-card h-100 p-4 rounded-4 shadow-sm border border-top-warning d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border-radius: 12px;">
+                        <i class="fa-solid fa-notes-medical fs-5 text-amber"></i>
+                    </div>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1 fw-bold">
+                        Health Summary
+                    </span>
+                </div>
+
+                {% if health %}
+                    <table class="table table-hover mb-0 small">
+                        <tr class="border-bottom">
+                            <td class="ps-0 text-muted"><i class="fa-solid fa-weight-scale me-2 text-indigo"></i>BMI</td>
+                            <td class="text-end fw-bold text-indigo">{{ health.bmi }}</td>
+                        </tr>
+                        <tr class="border-bottom">
+                            <td class="ps-0 text-muted"><i class="fa-solid fa-heart-pulse me-2 text-emerald"></i>BMI Status</td>
+                            <td class="text-end fw-bold text-success">{{ health.bmi_category }}</td>
+                        </tr>
+                        <tr class="border-bottom">
+                            <td class="ps-0 text-muted"><i class="fa-solid fa-triangle-exclamation me-2 text-rose"></i>Health Risk</td>
+                            <td class="text-end fw-bold text-danger">{{ health.health_risk_score }}%</td>
+                        </tr>
+                        <tr class="border-bottom">
+                            <td class="ps-0 text-muted"><i class="fa-solid fa-bed me-2 text-cyan"></i>Sleep</td>
+                            <td class="text-end fw-bold text-cyan">{{ health.sleep_hours }} hrs</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-0 text-muted"><i class="fa-solid fa-user-check me-2 text-emerald"></i>Attendance</td>
+                            <td class="text-end fw-bold text-success">{{ health.attendance_percentage }}%</td>
+                        </tr>
+                    </table>
+                {% else %}
+                    <p class="text-muted mt-3">No health information logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wellness Modules Grid -->
+<div class="glass-card mt-4 p-4 rounded-4 shadow-sm border border-top-accent">
+    <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+        <div class="icon-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+            <i class="fa-solid fa-cubes-stacked fs-5 text-cyan"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-0">AI Platform Modules</h4>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <a href="{{ url_for('module2.index') }}" class="btn btn-outline-primary w-100 py-3 rounded-4 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold">
+                <i class="fa-solid fa-notes-medical fs-5 text-indigo"></i>
+                <span>Employee Health Data</span>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('module3.index') }}" class="btn btn-outline-primary w-100 py-3 rounded-4 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold">
+                <i class="fa-solid fa-chart-column fs-5 text-violet"></i>
+                <span>Risk Prediction</span>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('module4.index') }}" class="btn btn-outline-primary w-100 py-3 rounded-4 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold">
+                <i class="fa-solid fa-lightbulb fs-5 text-amber"></i>
+                <span>Recommendations</span>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="{{ url_for('module5.index') }}" class="btn btn-outline-primary w-100 py-3 rounded-4 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold">
+                <i class="fa-solid fa-brain fs-5 text-cyan"></i>
+                <span>Mental Health Analytics</span>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="{{ url_for('module7.index') }}" class="btn btn-outline-primary w-100 py-3 rounded-4 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold">
+                <i class="fa-solid fa-robot fs-5 text-emerald"></i>
+                <span>AI Wellness Chatbot</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

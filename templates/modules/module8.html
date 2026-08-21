@@ -1,0 +1,171 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Wellness Challenges & Leaderboard | Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-warning-subtle text-amber border border-warning-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-trophy me-1 text-amber"></i> Module 8 Gamified Engagement
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Wellness Challenges &amp; Leaderboards</h2>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Active Challenges list -->
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; border-radius: 10px;">
+                <i class="fa-solid fa-fire-flame-curved fs-5 text-amber"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-0">Active Wellness Challenges</h4>
+        </div>
+        
+        {% for c in challenges %}
+            {% set p = participations.get(c.id) %}
+            <div class="glass-card mb-4 p-4 rounded-4 shadow-sm border {% if loop.index == 1 %}border-top-success{% elif loop.index == 2 %}border-top-purple{% else %}border-top-primary{% endif %} d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div style="flex-grow: 1; max-width: 68%;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h5 class="fw-bold text-dark mb-0 fs-6">{{ c.title }}</h5>
+                        <span class="badge rounded-pill bg-gradient-badge text-white px-3 py-1 extra-small fw-bold">+{{ c.points_reward }} Points</span>
+                    </div>
+                    <p class="text-muted small mb-3" style="line-height: 1.5;">{{ c.description }}</p>
+                    
+                    {% if p %}
+                        <!-- Progress bar -->
+                        {% set pct = (p.current_progress / c.target_value * 100)|round(0) %}
+                        {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+                        <div class="d-flex align-items-center justify-content-between mb-1.5 extra-small">
+                            <span class="text-muted fw-bold"><i class="fa-solid fa-bullseye me-1 text-primary"></i>Target: {{ c.target_value|int }} {{ c.target_metric }}</span>
+                            <span class="fw-bold text-indigo">{{ p.current_progress|int }} / {{ c.target_value|int }} ({{ pct|int }}%)</span>
+                        </div>
+                        <div class="progress rounded-pill shadow-sm" style="height: 10px; background: #e2e8f0;">
+                            <div class="progress-bar rounded-pill" role="progressbar" style="width: {{ pct }}%; background: linear-gradient(90deg, #10b981 0%, #06b6d4 100%);" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    {% else %}
+                        <div class="extra-small text-muted fw-semibold"><i class="fa-solid fa-circle-info me-1 text-indigo"></i>Target Goal: <strong>{{ c.target_value|int }} {{ c.target_metric }}</strong></div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    {% if p %}
+                        {% if p.status == 'completed' %}
+                            <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-bold">
+                                <i class="fa-solid fa-circle-check me-1"></i>Completed
+                            </span>
+                        {% else %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-bold">
+                                <i class="fa-solid fa-arrows-spin me-1 fa-spin" style="--fa-animation-duration: 4s;"></i>Active
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <form action="{{ url_for('module8.join_challenge', id=c.id) }}" method="post" class="mb-0">
+                            <button class="btn btn-gradient-action btn-sm rounded-pill px-4 py-2 fw-bold shadow-sm" type="submit">
+                                <i class="fa-solid fa-plus me-1"></i>Join Challenge
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        
+        <!-- Admin Challenge Creator Panel -->
+        {% if current_user.role == 'admin' %}
+            <div class="glass-card p-4 rounded-4 shadow-sm border border-top-accent mt-4">
+                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                    <div class="icon-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; border-radius: 10px;">
+                        <i class="fa-solid fa-calendar-plus fs-5 text-cyan"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-0">Launch New Challenge (Admin)</h4>
+                </div>
+                
+                <form action="{{ url_for('module8.create_challenge') }}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Challenge Title</label>
+                            <input type="text" class="form-control rounded-pill px-3" name="title" placeholder="e.g. 5,000 Step Warm-up" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Target Metric</label>
+                            <select class="form-select rounded-pill px-3" name="target_metric">
+                                <option value="steps">Steps walked</option>
+                                <option value="sleep">Sleep hours</option>
+                                <option value="mindfulness">Mindfulness journals logged</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Target Value</label>
+                            <input type="number" step="any" class="form-control rounded-pill px-3" name="target_value" placeholder="e.g. 5000" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Points Reward</label>
+                            <input type="number" class="form-control rounded-pill px-3" name="points_reward" placeholder="e.g. 50" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Description</label>
+                            <textarea class="form-control rounded-3 p-3" name="description" rows="2" placeholder="Describe the rules and wellness benefits..." required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold" type="submit">
+                                <i class="fa-solid fa-paper-plane me-2"></i>Launch Challenge
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Leaderboard Sidebar -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning h-100">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-2 border-bottom">
+                <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-ranking-star fs-5 text-amber"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Company Leaderboard</h4>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table align-middle border-0 small mb-0">
+                    <thead>
+                        <tr class="extra-small text-muted text-uppercase fw-bold border-bottom">
+                            <th style="width: 12%;">Rank</th>
+                            <th>Employee</th>
+                            <th class="text-end">Steps</th>
+                            <th class="text-end">Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in leaderboard %}
+                            <tr class="border-bottom">
+                                <td>
+                                    {% if loop.index == 1 %}
+                                        <span class="badge bg-warning text-dark border border-warning rounded-circle shadow-sm" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;">👑</span>
+                                    {% elif loop.index == 2 %}
+                                        <span class="badge bg-secondary-subtle text-dark border rounded-circle" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;">🥈</span>
+                                    {% elif loop.index == 3 %}
+                                        <span class="badge bg-danger-subtle text-danger border rounded-circle" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.95rem;">🥉</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border rounded-circle" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem;">#{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark mb-0.5" style="line-height: 1.2;">{{ entry.name }}</div>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill extra-small px-2 py-0.5">{{ entry.department }}</span>
+                                </td>
+                                <td class="text-end text-muted extra-small font-monospace">
+                                    {{ entry.steps|int }}
+                                </td>
+                                <td class="text-end fw-bold text-indigo fs-6">
+                                    {{ entry.points }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Employee Health Data | Employee Wellness{% endblock %}
+{% block dashboard_content %}
+<div class="dashboard-header mb-4 pb-3 border-bottom">
+    <div>
+        <span class="eyebrow badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-notes-medical me-1"></i> Module 2
+        </span>
+        <h2 class="fw-bold text-dark mb-0">Employee Health Data Management</h2>
+    </div>
+    <a class="btn btn-gradient-action px-4 py-2 shadow-sm" href="{{ url_for('module2.add_record') }}">
+        <i class="fa-solid fa-plus me-2"></i>Add Health Record
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- BMI Report Card -->
+    <div class="col-lg-4">
+        <div class="metric-card glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 position-relative d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border-radius: 12px;">
+                    <i class="fa-solid fa-weight-scale fs-5 text-indigo"></i>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                    BMI Metric
+                </span>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">BMI Report</h4>
+            <p class="fs-5 fw-bold text-primary mb-3">
+                {{ record.bmi ~ ' - ' ~ record.bmi_category if record else 'No record added' }}
+            </p>
+            <div class="mt-auto">
+                <a class="btn btn-outline-primary btn-sm rounded-pill px-4 py-2 fw-bold w-100" href="{{ url_for('module2.bmi_report') }}">
+                    <i class="fa-solid fa-chart-simple me-1"></i> View BMI Report
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wellness Score Card -->
+    <div class="col-lg-4">
+        <div class="metric-card glass-card p-4 rounded-4 shadow-sm border border-top-success h-100 position-relative d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border-radius: 12px;">
+                    <i class="fa-solid fa-heart-pulse fs-5 text-emerald"></i>
+                </div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
+                    Health Score
+                </span>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Wellness Score</h4>
+            <p class="fs-4 fw-bold text-success mb-3">
+                {{ record.wellness_score if record else 'No record added' }}
+            </p>
+            <div class="mt-auto">
+                <a class="btn btn-outline-success btn-sm rounded-pill px-4 py-2 fw-bold w-100" href="{{ url_for('module2.wellness_score') }}">
+                    <i class="fa-solid fa-heart-circle-check me-1"></i> View Wellness Score
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Risk Score Card -->
+    <div class="col-lg-4">
+        <div class="metric-card glass-card p-4 rounded-4 shadow-sm border border-top-warning h-100 position-relative d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border-radius: 12px;">
+                    <i class="fa-solid fa-triangle-exclamation fs-5 text-amber"></i>
+                </div>
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1 fw-bold">
+                    Risk Assessment
+                </span>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Health Risk Score</h4>
+            <p class="fs-5 fw-bold text-warning mb-3">
+                {{ record.health_risk_score if record else 'No record added' }}
+            </p>
+            <div class="mt-auto">
+                <a class="btn btn-outline-warning btn-sm rounded-pill px-4 py-2 fw-bold text-dark w-100" href="{{ url_for('module2.download_report') }}">
+                    <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions Bar -->
+<div class="glass-card p-3 p-md-4 rounded-4 mt-4 shadow-sm border">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+        {% if record %}
+            <a class="btn btn-primary px-4 py-2 shadow-sm" href="{{ url_for('module2.view_record', record_id=record.id) }}">
+                <i class="fa-solid fa-eye me-2"></i>View Health Record
+            </a>
+            <a class="btn btn-outline-primary px-4 py-2" href="{{ url_for('module2.edit_record', record_id=record.id) }}">
+                <i class="fa-solid fa-pen-to-square me-2"></i>Update Health Record
+            </a>
+            <form method="post" action="{{ url_for('module2.delete_record', record_id=record.id) }}" class="d-inline mb-0">
+                <button class="btn btn-outline-danger px-4 py-2" type="submit" onclick="return confirm('Delete this health record?')">
+                    <i class="fa-solid fa-trash me-2"></i>Delete Health Record
+                </button>
+            </form>
+        {% else %}
+            <a class="btn btn-primary px-4 py-2 shadow-sm" href="{{ url_for('module2.add_record') }}">
+                <i class="fa-solid fa-plus me-2"></i>Add Health Record
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Wearables Integration -->
+<div class="glass-card mt-4 p-4 rounded-4 shadow-sm border">
+    <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; border-radius: 12px;">
+            <i class="fa-solid fa-mobile-screen fs-5 text-indigo"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-0">Wearable Device Integrations</h4>
+    </div>
+    <p class="text-muted small mb-4">Fetch live heart rate, sleep cycles, steps, and active calories from your wearable account via OAuth API.</p>
+    <div class="d-flex flex-wrap gap-3">
+        <form action="{{ url_for('module2.sync_wearable', provider='fitbit') }}" method="post" class="d-inline">
+            <button class="btn btn-outline-primary px-4 py-2 shadow-sm" type="submit">
+                <i class="fa-solid fa-heart-pulse me-2 text-indigo"></i>Sync Fitbit Telemetry
+            </button>
+        </form>
+        <form action="{{ url_for('module2.sync_wearable', provider='google-fit') }}" method="post" class="d-inline">
+            <button class="btn btn-outline-primary px-4 py-2 shadow-sm" type="submit">
+                <i class="fa-brands fa-google me-2 text-danger"></i>Sync Google Fit Telemetry
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

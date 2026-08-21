@@ -1,0 +1,314 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Personal Health & Wellness Analytics | AI Employee Wellness Analytics{% endblock %}
+{% block dashboard_content %}
+
+<div class="dashboard-header mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="eyebrow badge bg-info-subtle text-info border border-info-subtle px-3 py-1 rounded-pill mb-2 fw-bold">
+            <i class="fa-solid fa-chart-pie me-1 text-cyan"></i> Module 6 Personal Analytics
+        </span>
+        {% if selected_employee %}
+            <h2 class="fw-bold text-dark mb-0">Inspect Analytics: {{ selected_employee.full_name }}</h2>
+        {% else %}
+            <h2 class="fw-bold text-dark mb-0">Personal Health &amp; Wellness Analytics</h2>
+        {% endif %}
+    </div>
+    {% if selected_employee %}
+        <a class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold" href="{{ url_for('module6.index') }}">
+            <i class="fa-solid fa-arrow-left me-2"></i>Back to Org Dashboard
+        </a>
+    {% endif %}
+</div>
+
+<!-- Admin Selection Toolbar (Admin only) -->
+{% if current_user.role == 'admin' %}
+<div class="glass-card p-3 mb-4 rounded-4 shadow-sm border d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-users-viewfinder me-2 text-indigo"></i>Inspect Different Employee Profile
+        </h5>
+    </div>
+    <form method="get" class="d-flex gap-2 mb-0">
+        <select class="form-select form-select-sm rounded-pill px-3" name="employee_id" style="width: 250px;" required>
+            <option value="">-- Select Employee --</option>
+            {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if selected_employee and selected_employee.id == emp.id %}selected{% endif %}>{{ emp.full_name }} ({{ emp.department }})</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary btn-sm px-4 rounded-pill fw-bold" type="submit">Inspect Profile</button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Top Personal KPIs Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Wellness Score</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ wellness_score }}/100</h3>
+            </div>
+            <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 14px;">
+                <i class="fa-solid fa-chart-line fs-4 text-indigo"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-danger h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Absenteeism Rate</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ (100 - attendance)|round(1) }}%</h3>
+            </div>
+            <div class="icon-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 14px;">
+                <i class="fa-solid fa-calendar-minus fs-4 text-danger"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-purple h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Avg Sleep Hours</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ sleep_hours }} hrs</h3>
+            </div>
+            <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 14px;">
+                <i class="fa-solid fa-bed fs-4 text-emerald"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning h-100 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-muted extra-small fw-bold text-uppercase d-block mb-1">Health Risk Score</span>
+                <h3 class="fw-bold text-dark mb-0" style="font-size: 1.65rem;">{{ risk_score }}%</h3>
+            </div>
+            <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 14px;">
+                <i class="fa-solid fa-heart-pulse fs-4 text-amber"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Chart: Personal Mood Polarity timeline -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-primary h-100 d-flex flex-column">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-chart-area fs-5 text-indigo"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Historical Sentiment Trajectory</h4>
+            </div>
+            
+            <p class="text-muted small mb-3">Timeline monitoring emotional polarity index values mapped from your feedback journals.</p>
+            <div style="height: 250px; position: relative;" class="flex-grow-1">
+                {% if dates %}
+                    <canvas id="personalMoodChart"></canvas>
+                {% else %}
+                    <div class="text-center py-5 my-auto text-muted d-flex flex-column align-items-center justify-content-center flex-grow-1">
+                        <i class="fa-solid fa-face-smile fa-3x mb-3 text-indigo" style="opacity: 0.3;"></i>
+                        <p class="small text-muted mb-0">No mood logs recorded yet. Submit a journal to view the timeline.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Health details status overview -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-success h-100">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-shield-halved fs-5 text-emerald"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Status Overview</h4>
+            </div>
+            
+            {% if record %}
+                <ul class="list-group list-group-flush border-0 small">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-bottom bg-transparent">
+                        <span class="text-muted fw-semibold"><i class="fa-solid fa-weight-scale me-2 text-indigo"></i>BMI Index:</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">{{ record.bmi }} ({{ record.bmi_category }})</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-bottom bg-transparent">
+                        <span class="text-muted fw-semibold"><i class="fa-solid fa-heart-pulse me-2 text-danger"></i>Heart Rate:</span>
+                        <span class="fw-bold text-dark">{{ record.heart_rate }} bpm</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-bottom bg-transparent">
+                        <span class="text-muted fw-semibold"><i class="fa-solid fa-droplet me-2 text-cyan"></i>Water Intake:</span>
+                        <span class="fw-bold text-dark">{{ record.daily_water_litres }} Litres/day</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-bottom bg-transparent">
+                        <span class="text-muted fw-semibold"><i class="fa-solid fa-brain me-2 text-purple"></i>Stress Level:</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">{{ record.stress_level }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-0 bg-transparent">
+                        <span class="text-muted fw-semibold"><i class="fa-solid fa-person-walking me-2 text-amber"></i>Steps/Day:</span>
+                        <span class="fw-bold text-dark">{{ record.daily_step_count or '0' }} steps</span>
+                    </li>
+                </ul>
+            {% else %}
+                <div class="text-center py-4 text-muted small">
+                    <i class="fa-solid fa-notes-medical fs-1 text-muted mb-2 opacity-50"></i>
+                    <p class="mb-0">No health summary logged yet for this employee profile.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Chart 2: Employee vs Org Average Comparison -->
+    <div class="col-lg-7">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-purple">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-purple-subtle text-purple d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-chart-bar fs-5 text-purple"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Biometric Performance vs. Company Average</h4>
+            </div>
+            <p class="text-muted small mb-3">Compares your direct metrics against company-wide average benchmarks.</p>
+            <div style="height: 240px; position: relative;">
+                <canvas id="personalCompareChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Sentiment Distribution -->
+    <div class="col-lg-5">
+        <div class="glass-card p-4 rounded-4 shadow-sm border border-top-warning">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="icon-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 12px;">
+                    <i class="fa-solid fa-chart-pie fs-5 text-amber"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Journal Sentiment Distribution</h4>
+            </div>
+            <p class="text-muted small mb-3">Breakdown of emotional logs (Positive vs. Neutral vs. Negative).</p>
+            <div style="height: 240px; position: relative;">
+                {% if dates %}
+                    <canvas id="personalSentimentChart"></canvas>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">No emotional records found. Log your mood to see the breakdown.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Comparison Bar Chart (Employee vs. Org average)
+    const compareCtx = document.getElementById('personalCompareChart').getContext('2d');
+    new Chart(compareCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Wellness Score', 'Sleep (x10)', 'Water (x25)', 'Steps (/100)'],
+            datasets: [
+                {
+                    label: 'This Profile',
+                    data: [
+                        {{ wellness_score }},
+                        {{ sleep_hours * 10 }},
+                        {{ water_intake * 25 }},
+                        {{ steps / 100 }}
+                    ],
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Company Avg',
+                    data: [
+                        {{ comp_metrics.avg_wellness }},
+                        {{ comp_metrics.avg_sleep * 10 }},
+                        {{ comp_metrics.avg_water * 25 }},
+                        {{ comp_metrics.avg_steps / 100 }}
+                    ],
+                    backgroundColor: '#10b981',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+
+    {% if dates %}
+    // 2. Personal Mood Chart
+    const ctx = document.getElementById('personalMoodChart').getContext('2d');
+    const dates = {{ dates|tojson }};
+    const polarityValues = {{ polarities|tojson }};
+    
+    // Gradient fill for line chart
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(79, 70, 229, 0.35)');
+    gradient.addColorStop(1, 'rgba(6, 182, 212, 0.02)');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Sentiment Polarity',
+                data: polarityValues,
+                borderColor: '#4f46e5',
+                backgroundColor: gradient,
+                borderWidth: 3,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#ffffff',
+                pointBorderWidth: 2.5,
+                pointBorderColor: '#4f46e5'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { min: -1.0, max: 1.0 }
+            }
+        }
+    });
+
+    // 3. Personal Sentiment Distribution Doughnut Chart
+    const sentimentCtx = document.getElementById('personalSentimentChart').getContext('2d');
+    const sentimentCounts = {{ sentiment_counts|tojson }};
+    new Chart(sentimentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: sentimentCounts,
+                backgroundColor: ['#10b981', '#06b6d4', '#ef4444'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 10 } }
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

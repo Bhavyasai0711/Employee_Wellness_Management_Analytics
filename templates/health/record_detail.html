@@ -1,0 +1,52 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Health Record | Employee Wellness{% endblock %}
+{% block dashboard_content %}
+<div class="dashboard-header">
+    <div>
+        <p class="eyebrow text-primary">Health Record</p>
+        <h1>{{ record.user.full_name }}</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{{ url_for('module2.edit_record', record_id=record.id) }}">Edit</a>
+        <a class="btn btn-primary" href="{{ url_for('module2.index') }}">Back</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% set cards = [
+        ("BMI", record.bmi ~ " - " ~ record.bmi_category, "fa-weight-scale"),
+        ("Wellness Score", record.wellness_score, "fa-heart-pulse"),
+        ("Health Risk Score", record.health_risk_score, "fa-triangle-exclamation"),
+        ("Sleep Hours", record.sleep_hours, "fa-bed"),
+        ("Attendance", record.attendance_percentage ~ "%", "fa-calendar-check"),
+        ("Stress Level", record.stress_level, "fa-brain")
+    ] %}
+    {% for title, value, icon in cards %}
+    <div class="col-md-4">
+        <div class="metric-card glass-card">
+            <i class="fa-solid {{ icon }}"></i>
+            <h2>{{ title }}</h2>
+            <p>{{ value }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="glass-card health-detail mt-4">
+    <h2>Complete Health Profile</h2>
+    <div class="detail-grid">
+        <span>Employee ID</span><strong>{{ record.employee_code }}</strong>
+        <span>Department</span><strong>{{ record.user.department }}</strong>
+        <span>Height / Weight</span><strong>{{ record.height_cm }} cm / {{ record.weight_kg }} kg</strong>
+        <span>Blood Group</span><strong>{{ record.blood_group }}</strong>
+        <span>Blood Pressure</span><strong>{{ record.blood_pressure }}</strong>
+        <span>Heart Rate</span><strong>{{ record.heart_rate }} bpm</strong>
+        <span>Blood Sugar</span><strong>{{ record.blood_sugar or "Not provided" }}</strong>
+        <span>Cholesterol</span><strong>{{ record.cholesterol or "Not provided" }}</strong>
+        <span>Exercise</span><strong>{{ record.exercise_frequency }} {{ "(" ~ record.exercise_type ~ ")" if record.exercise_type else "" }}</strong>
+        <span>Water Intake</span><strong>{{ record.daily_water_litres }} L</strong>
+        <span>Work Hours / Screen Time</span><strong>{{ record.work_hours_per_day or "NA" }} / {{ record.screen_time or "NA" }}</strong>
+        <span>Doctor Remarks</span><strong>{{ record.doctor_remarks or "No remarks" }}</strong>
+    </div>
+</div>
+{% endblock %}
